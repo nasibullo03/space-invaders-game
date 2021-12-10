@@ -15,18 +15,21 @@ WindowSize WinSize = {1000,560};
 vector <WindowSize> WSize = { WinSize };
 
 struct Bullet {
-	int weaponPositionX;
-	int weaponPositionY;
-	string direction;
+	float weaponPositionX;
+	float weaponPositionY;
+	string direction; 
+	bool bullet;
 };
 
+vector<Bullet> BulletList;
 
 
 int main()
 {
-	bool fire = false, weaponFire=true, bullet=false, leftFireRotation=false, rightFireRotation=false;
+	bool fire = false, weaponFire=true, leftFireRotation=false, rightFireRotation=false, clickOnKeyboardUP=false, first=true;
 	int intweaponFire=0;
 	int intBullet = 0, step = 0;
+	float weaponX, weaponY;
 	RenderWindow window(sf::VideoMode(WSize[0].width, WSize[0].height), "SFML Application",Style::Close);
 	
 	Image bgImage, weaponImg, fireImg, bulletImg;
@@ -107,12 +110,35 @@ int main()
 		if (Keyboard::isKeyPressed(Keyboard::Up) || 
 			Keyboard::isKeyPressed(Keyboard::W) || 
 			Keyboard::isKeyPressed(Keyboard::Num8) ||
-			Keyboard::isKeyPressed(Keyboard::Numpad8)) {
-			bulletSprite.setPosition(weaponSprite.getPosition().x + 67, weaponSprite.getPosition().y + 50);
+			Keyboard::isKeyPressed(Keyboard::Numpad8)|| 
+			Keyboard::isKeyPressed(Keyboard::Space)) {
+			
+			if (first==true) {
+				weaponX = weaponSprite.getPosition().x + 67;
+				weaponY = weaponSprite.getPosition().y + 50;
+				BulletList.push_back({ weaponX, weaponY, "UP",true });
+				fire = true;
+				first = false;
+			}
+			/*else if (BulletList[BulletList.size() - 1].bullet == false) {
+				weaponX = weaponSprite.getPosition().x + 67;
+				weaponY = weaponSprite.getPosition().y + 50;
+				BulletList.push_back({ weaponX, weaponY, "UP",true });
+				fire = true;
+				first = false;
+			}*/
+			
+			//	clickOnKeyboardUP = true;
+			/*if (clickOnKeyboardUP) {
+				bulletSprite.setPosition(weaponSprite.getPosition().x + 67, weaponSprite.getPosition().y + 50);
+			}*/
+			
 			fireSprite.setRotation(0);
 			weaponSprite.setRotation(0);
-			fire = true;
-			bullet = true;
+	
+
+	
+			//bullet = true;
 
 		}
 		 
@@ -121,9 +147,7 @@ int main()
 		if (Keyboard::isKeyPressed(Keyboard::Down)) {
 			fire = false;
 		}
-		if (Keyboard::isKeyPressed(Keyboard::Space)) {
-			
-		}
+		
 		
 		window.clear();
 		window.draw(bgSprite);
@@ -138,13 +162,44 @@ int main()
 			
 			fire = false;
 		}
-		if (bullet) {
+		
+		/*if (clickOnKeyboardUP) {
+			if (bulletSprite.getPosition().y<=15) {
+				bulletSprite.move(0, -1);
+				window.draw(bulletSprite);
+			}
+			else {
+				clickOnKeyboardUP = false;
+			}
+		}*/
+		for (int count = 0; count < BulletList.size(); ++count) {
+						
+			/*if (BulletList[count].bullet == false) {
+				BulletList.erase(BulletList.begin(),count);
+		}
+			*/
+			if (BulletList[count].bullet == true && BulletList[count].weaponPositionY >= 15) {
+				bulletSprite.setPosition(BulletList[count].weaponPositionX, BulletList[count].weaponPositionY);
+				--BulletList[count].weaponPositionY;
+				window.draw(bulletSprite);
+				break;
+			}
+			if (BulletList[count].weaponPositionY < 15)
+				first = true;
+				BulletList[count].bullet == false;
+				BulletList.clear();
+				
+			break;
+		}
+		
+		
+		/*if (bullet) {
 			if (bulletSprite.getPosition().y >= 15) {
 				
 				bulletSprite.move(0, -1);
 				window.draw(bulletSprite);
 			}
-		}
+		}*/
 
 		if (weaponFire) {
 			fireSprite.setTextureRect(IntRect(450, 593, 43, 97));
