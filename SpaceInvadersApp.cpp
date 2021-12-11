@@ -2,6 +2,8 @@
 #include <vector>
 #include <iostream>
 #include <iomanip>
+#include <cmath>
+#include <ctime>
 
 using namespace sf;
 using namespace std;
@@ -23,20 +25,95 @@ struct Bullet {
 
 vector<Bullet> BulletList;
 
+struct Invaders {
+	float invaderPositionX;
+	float invaderPositionY;
+	int invidersIndex;
+	int speed;
+};
+
+vector <Invaders> Level1;
 
 int main()
 {
-	bool fire = false, weaponFire=true, leftFireRotation=false, rightFireRotation=false, clickOnKeyboardUP=false, first=true;
-	int intweaponFire=0;
-	int intBullet = 0, step = 0;
+	bool fire = false, weaponFire = true, leftFireRotation = false, rightFireRotation = false, clickOnKeyboardUP = false, first = true;
+	int intweaponFire = 0, invider=0;
+	int intBullet = 0, step = 0, speed = 0;
 	float weaponX, weaponY;
-	RenderWindow window(sf::VideoMode(WSize[0].width, WSize[0].height), "SFML Application",Style::Close);
+	srand(time(NULL));
+
+	Level1.push_back({50,20,   rand() % 9,0});
+	Level1.push_back({ 150,140, rand() % 9,0 });
+	Level1.push_back({ 250,20, rand() % 9,0 });
+	Level1.push_back({ 350,140, rand() % 9,0 });
+	Level1.push_back({ 450,20, rand() % 9,0 });
+	Level1.push_back({ 550,140, rand() % 9,0 });
+	Level1.push_back({ 650,20, rand() % 9,0 });
+	Level1.push_back({ 750,140, rand() % 9,0 });
+	Level1.push_back({ 850,20, rand() % 9,0 });
 	
+	/*Level1[0] = {};
+	Level1[1] = {};
+	Level1[2] = {};
+	Level1[3] = {};
+	Level1[4] = {};
+	Level1[5] = {};
+	Level1[6] = {};
+	Level1[7] = {};
+	Level1[8] = {};
+	*/
+
+	RenderWindow window(sf::VideoMode(WSize[0].width, WSize[0].height), "SFML Application", Style::Close);
+
 	Image bgImage, weaponImg, fireImg, bulletImg;
 	bgImage.loadFromFile("images/bg.png");
 	weaponImg.loadFromFile("images/weapon.png");
 	fireImg.loadFromFile("images/fire.png");
 	bulletImg.loadFromFile("images/bullet.png");
+
+	Image invaders[9];
+	invaders[0].loadFromFile("images/inviders/0.png");
+	invaders[1].loadFromFile("images/inviders/1.png");
+	invaders[2].loadFromFile("images/inviders/2.png");
+	invaders[3].loadFromFile("images/inviders/3.png");
+	invaders[4].loadFromFile("images/inviders/4.png");
+	invaders[5].loadFromFile("images/inviders/5.png");
+	invaders[6].loadFromFile("images/inviders/6.png");
+	invaders[7].loadFromFile("images/inviders/7.png");
+	invaders[8].loadFromFile("images/inviders/8.png");
+
+	Texture invidersTexture[9];
+	invidersTexture[0].loadFromImage(invaders[0]);
+	invidersTexture[1].loadFromImage(invaders[1]);
+	invidersTexture[2].loadFromImage(invaders[2]);
+	invidersTexture[3].loadFromImage(invaders[3]);
+	invidersTexture[4].loadFromImage(invaders[4]);
+	invidersTexture[5].loadFromImage(invaders[5]);
+	invidersTexture[6].loadFromImage(invaders[6]);
+	invidersTexture[7].loadFromImage(invaders[7]);
+	invidersTexture[8].loadFromImage(invaders[8]);
+
+	Sprite invidersSprite[9];
+	invidersSprite[0].setTexture(invidersTexture[0]);
+	invidersSprite[1].setTexture(invidersTexture[1]);
+	invidersSprite[2].setTexture(invidersTexture[2]);
+	invidersSprite[3].setTexture(invidersTexture[3]);
+	invidersSprite[4].setTexture(invidersTexture[4]);
+	invidersSprite[5].setTexture(invidersTexture[5]);
+	invidersSprite[6].setTexture(invidersTexture[6]);
+	invidersSprite[7].setTexture(invidersTexture[7]);
+	invidersSprite[8].setTexture(invidersTexture[8]);
+
+	invidersSprite[0].setScale(100.0f / invidersSprite[0].getLocalBounds().width, 100.0f / invidersSprite[0].getLocalBounds().height);
+	invidersSprite[1].setScale(100.0f / invidersSprite[1].getLocalBounds().width, 100.0f / invidersSprite[1].getLocalBounds().height);
+	invidersSprite[2].setScale(100.0f / invidersSprite[2].getLocalBounds().width, 100.0f / invidersSprite[2].getLocalBounds().height);
+	invidersSprite[3].setScale(100.0f / invidersSprite[3].getLocalBounds().width, 100.0f / invidersSprite[3].getLocalBounds().height);
+	invidersSprite[4].setScale(100.0f / invidersSprite[4].getLocalBounds().width, 100.0f / invidersSprite[4].getLocalBounds().height);
+	invidersSprite[5].setScale(100.0f / invidersSprite[5].getLocalBounds().width, 100.0f / invidersSprite[5].getLocalBounds().height);
+	invidersSprite[6].setScale(100.0f / invidersSprite[6].getLocalBounds().width, 100.0f / invidersSprite[6].getLocalBounds().height);
+	invidersSprite[7].setScale(100.0f / invidersSprite[7].getLocalBounds().width, 100.0f / invidersSprite[7].getLocalBounds().height);
+	invidersSprite[8].setScale(100.0f / invidersSprite[8].getLocalBounds().width, 100.0f / invidersSprite[8].getLocalBounds().height);
+	
 
 	Texture bgTexture, weaponTxre, fireTxre, bulletTxre;
 	bgTexture.loadFromImage(bgImage);
@@ -80,10 +157,12 @@ int main()
 			Keyboard::isKeyPressed(Keyboard::A) || 
 			Keyboard::isKeyPressed(Keyboard::Num4) ||
 			Keyboard::isKeyPressed(Keyboard::Numpad4)) {
-			if (weaponSprite.getPosition().x >= 0) {
-				weaponSprite.move(-0.4, 0);
-				fireSprite.move(-0.4, 0);
-				leftFireRotation = true;
+			if (!clickOnKeyboardUP) {
+				if (weaponSprite.getPosition().x >= 0) {
+					weaponSprite.move(-0.4, 0);
+					fireSprite.move(-0.4, 0);
+					leftFireRotation = true;
+				}
 			}
 
 		}
@@ -96,12 +175,14 @@ int main()
 			Keyboard::isKeyPressed(Keyboard::D) || 
 			Keyboard::isKeyPressed(Keyboard::Num6) ||
 			Keyboard::isKeyPressed(Keyboard::Numpad6)) {
-			
-			if (weaponSprite.getPosition().x <= 850) {
-				weaponSprite.move(0.4, 0);
-				fireSprite.move(0.4, 0);
-				rightFireRotation = true;
+			if (!clickOnKeyboardUP) {
+				if (weaponSprite.getPosition().x <= 850) {
+					weaponSprite.move(0.4, 0);
+					fireSprite.move(0.4, 0);
+					rightFireRotation = true;
+				}
 			}
+			
 
 		}
 		else {
@@ -113,12 +194,13 @@ int main()
 			Keyboard::isKeyPressed(Keyboard::Numpad8)|| 
 			Keyboard::isKeyPressed(Keyboard::Space)) {
 			
+			clickOnKeyboardUP = true;
 			if (first==true) {
 				weaponX = weaponSprite.getPosition().x + 67;
 				weaponY = weaponSprite.getPosition().y + 50;
 				BulletList.push_back({ weaponX, weaponY, "UP",true });
-				fire = true;
 				first = false;
+				fire = true;
 			}
 			/*else if (BulletList[BulletList.size() - 1].bullet == false) {
 				weaponX = weaponSprite.getPosition().x + 67;
@@ -179,17 +261,22 @@ int main()
 		}
 			*/
 			if (BulletList[count].bullet == true && BulletList[count].weaponPositionY >= 15) {
+				if (BulletList[count].weaponPositionY < WSize[0].height - 150) {
+					clickOnKeyboardUP = false;
+				}
 				bulletSprite.setPosition(BulletList[count].weaponPositionX, BulletList[count].weaponPositionY);
-				--BulletList[count].weaponPositionY;
+				BulletList[count].weaponPositionY-=8;
 				window.draw(bulletSprite);
 				break;
 			}
-			if (BulletList[count].weaponPositionY < 15)
+			if (BulletList[count].weaponPositionY < 15) {
 				first = true;
 				BulletList[count].bullet == false;
 				BulletList.clear();
+
+				break;
+			}
 				
-			break;
 		}
 		
 		
@@ -202,6 +289,7 @@ int main()
 		}*/
 
 		if (weaponFire) {
+			
 			fireSprite.setTextureRect(IntRect(450, 593, 43, 97));
 			fireSprite.setPosition(weaponSprite.getPosition().x + 75, weaponSprite.getPosition().y + 75);
 			window.draw(fireSprite);
@@ -214,6 +302,7 @@ int main()
 				fireSprite.setRotation(10);
 			}
 			weaponFire = false;
+		
 
 		}
 		else if (!weaponFire) {
@@ -237,7 +326,32 @@ int main()
 			weaponFire = true;
 				
 		}
+		for (int inviders = 0; inviders < Level1.size(); ++inviders) {
+			invidersSprite[0].setPosition(Level1[inviders].invaderPositionX, Level1[inviders].invaderPositionY);
+			invidersSprite[1].setPosition(Level1[inviders].invaderPositionX, Level1[inviders].invaderPositionY);
+			invidersSprite[2].setPosition(Level1[inviders].invaderPositionX, Level1[inviders].invaderPositionY);
+			invidersSprite[3].setPosition(Level1[inviders].invaderPositionX, Level1[inviders].invaderPositionY);
+			invidersSprite[4].setPosition(Level1[inviders].invaderPositionX, Level1[inviders].invaderPositionY);
+			invidersSprite[5].setPosition(Level1[inviders].invaderPositionX, Level1[inviders].invaderPositionY);
+			invidersSprite[6].setPosition(Level1[inviders].invaderPositionX, Level1[inviders].invaderPositionY);
+			invidersSprite[7].setPosition(Level1[inviders].invaderPositionX, Level1[inviders].invaderPositionY);
+			invidersSprite[8].setPosition(Level1[inviders].invaderPositionX, Level1[inviders].invaderPositionY);
 			
+
+			window.draw(invidersSprite[Level1[inviders].invidersIndex]);
+			if (Level1[inviders].speed == 0 || Level1[inviders].speed == Level1.size()+10) {
+				++Level1[inviders].invidersIndex;
+				if (Level1[inviders].invidersIndex == 9) {
+					Level1[inviders].invidersIndex = 0;
+				}
+			}
+			else if (Level1[inviders].speed == 2*Level1.size()+20) {
+				Level1[inviders].speed = 0;
+			}
+			++Level1[inviders].speed;
+		}
+		
+		
 		window.draw(weaponSprite);
 		window.display();
 	}
