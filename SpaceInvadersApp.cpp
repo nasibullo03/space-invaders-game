@@ -30,6 +30,7 @@ struct Invaders {
 	float invaderPositionY;
 	int invidersIndex;
 	int speed;
+	int directionOfMovig;
 };
 
 vector <Invaders> Level1;
@@ -37,20 +38,21 @@ vector <Invaders> Level1;
 int main()
 {
 	bool fire = false, weaponFire = true, leftFireRotation = false, rightFireRotation = false, clickOnKeyboardUP = false, first = true;
-	int intweaponFire = 0, invider=0;
+	int intweaponFire = 0, invider=0, moveInvider;
 	int intBullet = 0, step = 0, speed = 0;
 	float weaponX, weaponY;
+	
 	srand(time(NULL));
-
-	Level1.push_back({50,20,   rand() % 9,0});
-	Level1.push_back({ 150,140, rand() % 9,0 });
-	Level1.push_back({ 250,20, rand() % 9,0 });
-	Level1.push_back({ 350,140, rand() % 9,0 });
-	Level1.push_back({ 450,20, rand() % 9,0 });
-	Level1.push_back({ 550,140, rand() % 9,0 });
-	Level1.push_back({ 650,20, rand() % 9,0 });
-	Level1.push_back({ 750,140, rand() % 9,0 });
-	Level1.push_back({ 850,20, rand() % 9,0 });
+	//структура Level 1
+	Level1.push_back({50,20,   rand() % 9,0, rand() % 2});
+	Level1.push_back({ 150,140, rand() % 9,0, rand() % 2 });
+	Level1.push_back({ 250,20, rand() % 9,0, rand() % 2 });
+	Level1.push_back({ 350,140, rand() % 9,0, rand() % 2 });
+	Level1.push_back({ 450,20, rand() % 9,0, rand() % 2 });
+	Level1.push_back({ 550,140, rand() % 9,0, rand() % 2 });
+	Level1.push_back({ 650,20, rand() % 9,0, rand() % 2 });
+	Level1.push_back({ 750,140, rand() % 9,0, rand() % 2 });
+	Level1.push_back({ 850,20, rand() % 9,0, rand() % 2 });
 	
 	/*Level1[0] = {};
 	Level1[1] = {};
@@ -327,6 +329,29 @@ int main()
 				
 		}
 		for (int inviders = 0; inviders < Level1.size(); ++inviders) {
+			
+			
+			if (Level1[inviders].speed == 0 || Level1[inviders].speed == Level1.size() + 10) {
+				if (Level1[inviders].directionOfMovig == 0) {
+					++Level1[inviders].invaderPositionX;
+					if (Level1[inviders].invaderPositionX >= 850) {
+						Level1[inviders].directionOfMovig = 1;
+					} else if (Level1[inviders].invaderPositionX + 100 == Level1[inviders + 2].invaderPositionX) {
+						Level1[inviders].directionOfMovig = 1;
+						Level1[inviders+2].directionOfMovig = 0;
+					}
+				}
+				if (Level1[inviders].directionOfMovig == 1) {
+					--Level1[inviders].invaderPositionX;
+					if (Level1[inviders].invaderPositionX <= 50) {
+						Level1[inviders].directionOfMovig = 0;
+					} 
+					else if (Level1[inviders].invaderPositionX - 100 == Level1[inviders - 2].invaderPositionX) {
+						Level1[inviders].directionOfMovig = 0;
+						Level1[inviders-2].directionOfMovig = 1;
+					}
+				}
+			}
 			invidersSprite[0].setPosition(Level1[inviders].invaderPositionX, Level1[inviders].invaderPositionY);
 			invidersSprite[1].setPosition(Level1[inviders].invaderPositionX, Level1[inviders].invaderPositionY);
 			invidersSprite[2].setPosition(Level1[inviders].invaderPositionX, Level1[inviders].invaderPositionY);
