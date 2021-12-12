@@ -4,6 +4,7 @@
 #include <iomanip>
 #include <cmath>
 #include <ctime>
+#include <string>
 
 using namespace sf;
 using namespace std;
@@ -36,27 +37,40 @@ struct Invaders {
 
 vector <Invaders> Level1;
 
+struct Explosion{
+	float explosionPositionX;
+	float explosionPositionY;
+	bool endOfExplosion;
+	float explosionSpeed;
+	int explosionImgIndex;
+};
+
+vector <Explosion> Explosions;
+
 int main()
 {
 	bool fire = false, weaponFire = true, leftFireRotation = false, 
 		rightFireRotation = false, clickOnKeyboardUP = false, 
-		first = true, hitTheTarget=false, endOfProgram=false, break1=false, break2=false;
+		first = true, hitTheTarget=false, endOfProgram=false, break1=false, break2=false,
+		explosion=false;
 
 	int intweaponFire = 0, invider = 0;
 	int intBullet = 0, bullEndPositionY, step = 0, speed = 0;
-	float weaponX, weaponY, invidersSpeed = 1;;
+	float weaponX, weaponY, invidersSpeed = 1;
+	//string src, folder, type, fileName;
 	
 	srand(time_t(NULL));
 	//структура Level 1
 	Level1.push_back({50,20,   rand() % 9,0, 0,true});
-	Level1.push_back({ 150,140, rand() % 9,0, 0,true });
 	Level1.push_back({ 250,20, rand() % 9,0, 0,true });
-	Level1.push_back({ 350,140, rand() % 9,0, 0,true });
 	Level1.push_back({ 450,20, rand() % 9,0, 0,true });
-	Level1.push_back({ 550,140, rand() % 9,0,0 ,true });
 	Level1.push_back({ 650,20, rand() % 9,0, 0,true });
-	Level1.push_back({ 750,140, rand() % 9,0, 0,true });
 	Level1.push_back({ 850,20, rand() % 9,0, 0,true });
+	Level1.push_back({ 150,140, rand() % 9,0, 0,true });
+	Level1.push_back({ 350,140, rand() % 9,0, 0,true });
+	Level1.push_back({ 550,140, rand() % 9,0,0 ,true });
+	Level1.push_back({ 750,140, rand() % 9,0, 0,true });
+	
 	
 	/*Level1[0] = {};
 	Level1[1] = {};
@@ -72,54 +86,10 @@ int main()
 	RenderWindow window(sf::VideoMode(WSize[0].width, WSize[0].height), "SFML Application", Style::Close);
 
 	Image bgImage, weaponImg, fireImg, bulletImg;
-	bgImage.loadFromFile("images/bg.png");
-	weaponImg.loadFromFile("images/weapon.png");
-	fireImg.loadFromFile("images/fire.png");
-	bulletImg.loadFromFile("images/bullet.png");
-
-	Image invaders[9];
-	invaders[0].loadFromFile("images/inviders/100px/0.png");
-	invaders[1].loadFromFile("images/inviders/100px/1.png");
-	invaders[2].loadFromFile("images/inviders/100px/2.png");
-	invaders[3].loadFromFile("images/inviders/100px/3.png");
-	invaders[4].loadFromFile("images/inviders/100px/4.png");
-	invaders[5].loadFromFile("images/inviders/100px/5.png");
-	invaders[6].loadFromFile("images/inviders/100px/6.png");
-	invaders[7].loadFromFile("images/inviders/100px/7.png");
-	invaders[8].loadFromFile("images/inviders/100px/8.png");
-
-	Texture invidersTexture[9];
-	invidersTexture[0].loadFromImage(invaders[0]);
-	invidersTexture[1].loadFromImage(invaders[1]);
-	invidersTexture[2].loadFromImage(invaders[2]);
-	invidersTexture[3].loadFromImage(invaders[3]);
-	invidersTexture[4].loadFromImage(invaders[4]);
-	invidersTexture[5].loadFromImage(invaders[5]);
-	invidersTexture[6].loadFromImage(invaders[6]);
-	invidersTexture[7].loadFromImage(invaders[7]);
-	invidersTexture[8].loadFromImage(invaders[8]);
-
-	Sprite invidersSprite[9];
-	invidersSprite[0].setTexture(invidersTexture[0]);
-	invidersSprite[1].setTexture(invidersTexture[1]);
-	invidersSprite[2].setTexture(invidersTexture[2]);
-	invidersSprite[3].setTexture(invidersTexture[3]);
-	invidersSprite[4].setTexture(invidersTexture[4]);
-	invidersSprite[5].setTexture(invidersTexture[5]);
-	invidersSprite[6].setTexture(invidersTexture[6]);
-	invidersSprite[7].setTexture(invidersTexture[7]);
-	invidersSprite[8].setTexture(invidersTexture[8]);
-
-	/*invidersSprite[0].setScale(100.0f / invidersSprite[0].getLocalBounds().width, 100.0f / invidersSprite[0].getLocalBounds().height);
-	invidersSprite[1].setScale(100.0f / invidersSprite[1].getLocalBounds().width, 100.0f / invidersSprite[1].getLocalBounds().height);
-	invidersSprite[2].setScale(100.0f / invidersSprite[2].getLocalBounds().width, 100.0f / invidersSprite[2].getLocalBounds().height);
-	invidersSprite[3].setScale(100.0f / invidersSprite[3].getLocalBounds().width, 100.0f / invidersSprite[3].getLocalBounds().height);
-	invidersSprite[4].setScale(100.0f / invidersSprite[4].getLocalBounds().width, 100.0f / invidersSprite[4].getLocalBounds().height);
-	invidersSprite[5].setScale(100.0f / invidersSprite[5].getLocalBounds().width, 100.0f / invidersSprite[5].getLocalBounds().height);
-	invidersSprite[6].setScale(100.0f / invidersSprite[6].getLocalBounds().width, 100.0f / invidersSprite[6].getLocalBounds().height);
-	invidersSprite[7].setScale(100.0f / invidersSprite[7].getLocalBounds().width, 100.0f / invidersSprite[7].getLocalBounds().height);
-	invidersSprite[8].setScale(100.0f / invidersSprite[8].getLocalBounds().width, 100.0f / invidersSprite[8].getLocalBounds().height);
-	*/
+	bgImage.loadFromFile("images/bg.png");//добавление background image 
+	weaponImg.loadFromFile("images/weapon.png");//добавление оруж€ 
+	fireImg.loadFromFile("images/fire.png");//добавление эффект огны
+	bulletImg.loadFromFile("images/bullet.png");//добавление пул€
 
 	Texture bgTexture, weaponTxre, fireTxre, bulletTxre;
 	bgTexture.loadFromImage(bgImage);
@@ -147,8 +117,58 @@ int main()
 	);
 	
 
+	//добавление анимаци€ захватчики 
+	Image invaders[9];
+
+	for (int imgIndex = 0; imgIndex < 9; ++imgIndex) {
+		invaders[imgIndex].loadFromFile("images/inviders/100px/" + to_string(imgIndex) + ".png");
+	}
+
+	Texture invidersTexture[9];
+
+	for (int texture = 0; texture < 9; ++texture) {
+		invidersTexture[texture].loadFromImage(invaders[texture]);
+	}
+
+	Sprite invidersSprite[9];
+
+	for (int sprite = 0; sprite < 9; ++sprite) {
+		invidersSprite[sprite].setTexture(invidersTexture[sprite]);
+	}
+
+	//добавление эффект взрыв 
+	Image explosionImg[50];
+
+	for (int imgIndex = 0; imgIndex < 50; ++imgIndex) {
+		explosionImg[imgIndex].loadFromFile("images/explosion/" + to_string(imgIndex) + ".png");
+	}
+
+	Texture explosionTexture[50];
+
+	for (int texture = 0; texture < 50; ++texture) {
+		explosionTexture[texture].loadFromImage(explosionImg[texture]);
+	}
+
+	Sprite explosionSprite[50];
+	for (int sprite = 0; sprite < 50; ++sprite) {
+		explosionSprite[sprite].setTexture(explosionTexture[sprite]);
+		explosionSprite[sprite].setScale(
+			200.0f / explosionSprite[sprite].getLocalBounds().width,
+			200.0f / explosionSprite[sprite].getLocalBounds().height
+		);
+	}
+
+
+	Clock clock; // создает переменную времени, т.о. прив€зка ко времени (а не загруженности мощьности процессора)
+
+	
+
 	while (window.isOpen())
 	{
+		float time = clock.getElapsedTime().asMicroseconds();//дать прощедшее врем€ в микросекундах;
+		clock.restart();//презагружает врем€
+		time = time / 400;//скорость игры 
+
 		Event event;
 		while (window.pollEvent(event))
 		{
@@ -165,8 +185,8 @@ int main()
 			Keyboard::isKeyPressed(Keyboard::Numpad4)) {
 			if (!clickOnKeyboardUP) {
 				if (weaponSprite.getPosition().x >= 0) {
-					weaponSprite.move(float(-1), float(0));
-					fireSprite.move(float(-1), float(0));
+					weaponSprite.move(float(-0.2)*time, float(0));
+					fireSprite.move(float(-0.2)*time, float(0));
 					leftFireRotation = true;
 				}
 			}
@@ -183,8 +203,8 @@ int main()
 			Keyboard::isKeyPressed(Keyboard::Numpad6)) {
 			if (!clickOnKeyboardUP) {
 				if (weaponSprite.getPosition().x <= 850) {
-					weaponSprite.move(float(1), float(0));
-					fireSprite.move(float(1), float(0));
+					weaponSprite.move(float(0.2)*time, float(0));
+					fireSprite.move(float(0.2)*time, float(0));
 					rightFireRotation = true;
 				}
 			}
@@ -209,7 +229,7 @@ int main()
 				first = false;
 				
 			}
-			// ком кардаги буд
+
 			else if (BulletList[BulletList.size() - 1].bullet == false) {
 				weaponX = weaponSprite.getPosition().x + 67;
 				weaponY = weaponSprite.getPosition().y + 50;
@@ -225,7 +245,6 @@ int main()
 			fireSprite.setRotation(0);
 			weaponSprite.setRotation(0);
 		
-			//bullet = true;
 		}
 		 
 		
@@ -247,22 +266,9 @@ int main()
 			
 			fire = false;
 		}
-		
-		/*if (clickOnKeyboardUP) {
-			if (bulletSprite.getPosition().y<=15) {
-				bulletSprite.move(0, -1);
-				window.draw(bulletSprite);
-			}
-			else {
-				clickOnKeyboardUP = false;
-			}
-		}*/
+
 		for (int count = 0; count < BulletList.size(); ++count) {
 						
-			/*if (BulletList[count].bullet == false) {
-				BulletList.erase(BulletList.begin(),count);
-		}
-			*/
 			if (BulletList[count].bullet == true && BulletList[count].weaponPositionY >= 15) {
 				if (BulletList[count].weaponPositionY < WSize[0].height - 150) {
 					clickOnKeyboardUP = false;
@@ -274,23 +280,21 @@ int main()
 						(BulletList[count].weaponPositionY-80 <= Level1[inviders].invaderPositionY)){
 						bullEndPositionY = BulletList[count].weaponPositionY;;
 						Level1[inviders] = { 0,0,0, 0,false };
-						invidersSpeed +=0.8;
-						//hitTheTarget = true;
+						Explosions.push_back({ BulletList[count].weaponPositionX,BulletList[count].weaponPositionY,false,0 });
+						invidersSpeed +=0.3*time;
 						first = true;
 						BulletList[count].bullet = false;
 						BulletList.clear();
-					//	hitTheTarget = false;
+
 						break;
 					}
 
 				}
 
-				if (!hitTheTarget) {
-					bulletSprite.setPosition(BulletList[count].weaponPositionX, BulletList[count].weaponPositionY);
-					BulletList[count].weaponPositionY -= 6;
-					window.draw(bulletSprite);
-					break;
-				}
+				bulletSprite.setPosition(BulletList[count].weaponPositionX, BulletList[count].weaponPositionY);
+				BulletList[count].weaponPositionY -= 1*time;
+				window.draw(bulletSprite);
+				break;		
 				
 			}
 
@@ -305,15 +309,6 @@ int main()
 				
 		}
 		
-		
-		/*if (bullet) {
-			if (bulletSprite.getPosition().y >= 15) {
-				
-				bulletSprite.move(0, -1);
-				window.draw(bulletSprite);
-			}
-		}*/
-
 		if (weaponFire) {
 			
 			fireSprite.setTextureRect(IntRect(450, 593, 43, 97));
@@ -363,9 +358,9 @@ int main()
 						if (Level1[inviders].invaderPositionX >= 850) {
 							Level1[inviders].directionOfMovig = 1;
 						}
-						else if (Level1[inviders].invaderPositionX + 100 == Level1[inviders + 2].invaderPositionX) {
+						else if (Level1[inviders].invaderPositionX + 100 == Level1[inviders + 1].invaderPositionX) {
 							Level1[inviders].directionOfMovig = 1;
-							Level1[inviders + 2].directionOfMovig = 0;
+							Level1[inviders + 1].directionOfMovig = 0;
 						}
 					}
 					if (Level1[inviders].directionOfMovig == 1) {
@@ -373,8 +368,9 @@ int main()
 						if (Level1[inviders].invaderPositionX <= 50) {
 							Level1[inviders].directionOfMovig = 0;
 						}
-						else if (Level1[inviders].invaderPositionX - 100 == Level1[inviders - 2].invaderPositionX) {
-							
+						else if (Level1[inviders].invaderPositionX - 100 == Level1[inviders - 1].invaderPositionX) {
+							Level1[inviders].directionOfMovig = 0;
+							Level1[inviders - 1].directionOfMovig = 0;
 						}
 					}
 				}
@@ -384,17 +380,10 @@ int main()
 				continue;
 			}
 		
-			invidersSprite[0].setPosition(Level1[inviders].invaderPositionX, Level1[inviders].invaderPositionY);
-			invidersSprite[1].setPosition(Level1[inviders].invaderPositionX, Level1[inviders].invaderPositionY);
-			invidersSprite[2].setPosition(Level1[inviders].invaderPositionX, Level1[inviders].invaderPositionY);
-			invidersSprite[3].setPosition(Level1[inviders].invaderPositionX, Level1[inviders].invaderPositionY);
-			invidersSprite[4].setPosition(Level1[inviders].invaderPositionX, Level1[inviders].invaderPositionY);
-			invidersSprite[5].setPosition(Level1[inviders].invaderPositionX, Level1[inviders].invaderPositionY);
-			invidersSprite[6].setPosition(Level1[inviders].invaderPositionX, Level1[inviders].invaderPositionY);
-			invidersSprite[7].setPosition(Level1[inviders].invaderPositionX, Level1[inviders].invaderPositionY);
-			invidersSprite[8].setPosition(Level1[inviders].invaderPositionX, Level1[inviders].invaderPositionY);
-
-
+			for (int sprite = 0; sprite < 9; ++sprite) {
+				invidersSprite[sprite].setPosition(Level1[inviders].invaderPositionX, Level1[inviders].invaderPositionY);
+			}
+			
 			window.draw(invidersSprite[Level1[inviders].invidersIndex]);
 			if (Level1[inviders].speed == 0 || Level1[inviders].speed == Level1.size() + 5) {
 				++Level1[inviders].invidersIndex;
@@ -407,9 +396,30 @@ int main()
 			}
 			++Level1[inviders].speed;
 		}
-	
 		
-		
+		if (Explosions.size() > 0) {
+			for (int index = 0; index < Explosions.size(); ++index) {
+				if (!Explosions[index].endOfExplosion) {
+					Explosions[index].explosionSpeed += time;
+					for (int sprite = 0; sprite < 50; ++sprite) {
+						explosionSprite[sprite].setPosition(Explosions[index].explosionPositionX-50, Explosions[index].explosionPositionY-100);
+					}
+					window.draw(explosionSprite[Explosions[index].explosionImgIndex]);
+					if (Explosions[index].explosionSpeed > 50) {
+						++Explosions[index].explosionImgIndex;
+						if (Explosions[index].explosionImgIndex == 50) {
+							Explosions[index].explosionImgIndex = 0;
+							Explosions[index].endOfExplosion = true;
+						}
+						Explosions[index].explosionSpeed = 0;
+					}
+
+				}
+
+			}
+		}
+			
+
 		window.draw(weaponSprite);
 		window.display();
 	}
