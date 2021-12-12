@@ -48,15 +48,15 @@ int main()
 	
 	srand(time_t(NULL));
 	//структура Level 1
-	Level1.push_back({50,20,   rand() % 9,0, rand() % 2,true});
-	Level1.push_back({ 150,140, rand() % 9,0, rand() % 2,true });
-	Level1.push_back({ 250,20, rand() % 9,0, rand() % 2,true });
-	Level1.push_back({ 350,140, rand() % 9,0, rand() % 2,true });
-	Level1.push_back({ 450,20, rand() % 9,0, rand() % 2,true });
-	Level1.push_back({ 550,140, rand() % 9,0, rand() % 2,true });
-	Level1.push_back({ 650,20, rand() % 9,0, rand() % 2,true });
-	Level1.push_back({ 750,140, rand() % 9,0, rand() % 2,true });
-	Level1.push_back({ 850,20, rand() % 9,0, rand() % 2,true });
+	Level1.push_back({50,20,   rand() % 9,0, 0,true});
+	Level1.push_back({ 150,140, rand() % 9,0, 0,true });
+	Level1.push_back({ 250,20, rand() % 9,0, 0,true });
+	Level1.push_back({ 350,140, rand() % 9,0, 0,true });
+	Level1.push_back({ 450,20, rand() % 9,0, 0,true });
+	Level1.push_back({ 550,140, rand() % 9,0,0 ,true });
+	Level1.push_back({ 650,20, rand() % 9,0, 0,true });
+	Level1.push_back({ 750,140, rand() % 9,0, 0,true });
+	Level1.push_back({ 850,20, rand() % 9,0, 0,true });
 	
 	/*Level1[0] = {};
 	Level1[1] = {};
@@ -159,15 +159,14 @@ int main()
 				
 		}
 
-
 		if (Keyboard::isKeyPressed(Keyboard::Left)||
 			Keyboard::isKeyPressed(Keyboard::A) || 
 			Keyboard::isKeyPressed(Keyboard::Num4) ||
 			Keyboard::isKeyPressed(Keyboard::Numpad4)) {
 			if (!clickOnKeyboardUP) {
 				if (weaponSprite.getPosition().x >= 0) {
-					weaponSprite.move(float(-0.4), float(0));
-					fireSprite.move(float(-0.4), float(0));
+					weaponSprite.move(float(-1), float(0));
+					fireSprite.move(float(-1), float(0));
 					leftFireRotation = true;
 				}
 			}
@@ -184,8 +183,8 @@ int main()
 			Keyboard::isKeyPressed(Keyboard::Numpad6)) {
 			if (!clickOnKeyboardUP) {
 				if (weaponSprite.getPosition().x <= 850) {
-					weaponSprite.move(float(0.4), float(0));
-					fireSprite.move(float(0.4), float(0));
+					weaponSprite.move(float(1), float(0));
+					fireSprite.move(float(1), float(0));
 					rightFireRotation = true;
 				}
 			}
@@ -225,12 +224,8 @@ int main()
 			
 			fireSprite.setRotation(0);
 			weaponSprite.setRotation(0);
-			//;
-	
-
-	
+		
 			//bullet = true;
-
 		}
 		 
 		
@@ -292,7 +287,7 @@ int main()
 
 				if (!hitTheTarget) {
 					bulletSprite.setPosition(BulletList[count].weaponPositionX, BulletList[count].weaponPositionY);
-					BulletList[count].weaponPositionY -= 8;
+					BulletList[count].weaponPositionY -= 6;
 					window.draw(bulletSprite);
 					break;
 				}
@@ -368,55 +363,19 @@ int main()
 						if (Level1[inviders].invaderPositionX >= 850) {
 							Level1[inviders].directionOfMovig = 1;
 						}
-						break1 = false;
-						for (int invidersIndexA = 0; invidersIndexA < Level1.size(); ++invidersIndexA) {
-							for (int invidersIndexB = 0; invidersIndexB < Level1.size(); ++invidersIndexB) {
-								if (invidersIndexA != invidersIndexB) {
-									if ((Level1[invidersIndexA].invaderPositionX + 100 == Level1[invidersIndexB].invaderPositionX) &&
-										(Level1[invidersIndexA].invaderPositionY == Level1[invidersIndexB].invaderPositionY)) {
-										Level1[invidersIndexA].directionOfMovig = 1;
-										Level1[invidersIndexB].directionOfMovig = 0;
-										break1 = true;
-										break;
-									}
-								}
-								
-							}
-							if (break1) {
-								break;
-							}
-						}
-						/*if (Level1[inviders].invaderPositionX + 100 == Level1[inviders + 2].invaderPositionX) {
+						else if (Level1[inviders].invaderPositionX + 100 == Level1[inviders + 2].invaderPositionX) {
 							Level1[inviders].directionOfMovig = 1;
 							Level1[inviders + 2].directionOfMovig = 0;
-						}*/
+						}
 					}
 					if (Level1[inviders].directionOfMovig == 1) {
 						Level1[inviders].invaderPositionX -= invidersSpeed;;
 						if (Level1[inviders].invaderPositionX <= 50) {
 							Level1[inviders].directionOfMovig = 0;
 						}
-						break1 = false;
-						for (int invidersIndexA = 0; invidersIndexA < Level1.size(); ++invidersIndexA) {
-							for (int invidersIndexB = 0; invidersIndexB < Level1.size(); ++invidersIndexB) {
-								if (invidersIndexA != invidersIndexB) {
-									if ((Level1[invidersIndexA].invaderPositionX - 100 == Level1[invidersIndexB].invaderPositionX) &&
-										(Level1[invidersIndexA].invaderPositionY == Level1[invidersIndexB].invaderPositionY)) {
-										Level1[invidersIndexA].directionOfMovig = 0;
-										Level1[invidersIndexB].directionOfMovig = 1;
-										break1 = true;
-										break;
-									}
-								}
-
-							}
-							if (break1) {
-								break;
-							}
-						}
-						/*else if (Level1[inviders].invaderPositionX - 100 == Level1[inviders - 2].invaderPositionX) {
+						else if (Level1[inviders].invaderPositionX - 100 == Level1[inviders - 2].invaderPositionX) {
 							
-						}*/
+						}
 					}
 				}
 			}
