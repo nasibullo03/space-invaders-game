@@ -33,6 +33,11 @@ struct Invaders {
 	int speed;
 	int directionOfMovig;
 	bool life;
+	int stepForGoingToDown;
+	float goingDownSpeed;
+	bool goingDown;
+	float XCordinationDown;
+	int column;
 };
 
 vector <Invaders> Level1;
@@ -47,12 +52,21 @@ struct Explosion{
 
 vector <Explosion> Explosions;
 
+void RemoveLevel1(std::vector<Invaders> & Level1, bool life) {
+	Level1.erase(
+		std::remove_if(Level1.begin(), Level1.end(), [&](Invaders const & v) {
+		return v.life == false;
+	}),
+		Level1.end());
+}
+
 int main()
 {
 	bool fire = false, weaponFire = true, leftFireRotation = false, 
 		rightFireRotation = false, clickOnKeyboardUP = false, 
 		first = true, hitTheTarget=false, endOfProgram=false, break1=false, break2=false,
 		explosion=false;
+	bool rightEndofColumn1, rightEndofColumn2, rightEndofColumn3,leftEndofColumn1, leftEndofColumn2, leftEndofColumn3;
 
 	int intweaponFire = 0, invider = 0;
 	int intBullet = 0, bullEndPositionY, step = 0, speed = 0;
@@ -61,15 +75,15 @@ int main()
 	
 	srand(time_t(NULL));
 	//структура Level 1
-	Level1.push_back({50,20,   rand() % 9,0, 0,true});
-	Level1.push_back({ 250,20, rand() % 9,0, 0,true });
-	Level1.push_back({ 450,20, rand() % 9,0, 0,true });
-	Level1.push_back({ 650,20, rand() % 9,0, 0,true });
-	Level1.push_back({ 850,20, rand() % 9,0, 0,true });
-	Level1.push_back({ 150,140, rand() % 9,0, 0,true });
-	Level1.push_back({ 350,140, rand() % 9,0, 0,true });
-	Level1.push_back({ 550,140, rand() % 9,0,0 ,true });
-	Level1.push_back({ 750,140, rand() % 9,0, 0,true });
+	Level1.push_back({ 50,20,   rand() % 9,0, 0,true,0,0,false,0, 1 });
+	Level1.push_back({ 250,20, rand() % 9,0, 0,true,0,0,false,0 ,1});
+	Level1.push_back({ 450,20, rand() % 9,0, 0,true,0,0,false,0 ,1});
+	Level1.push_back({ 650,20, rand() % 9,0, 0,true,0,0,false,0,1});
+	Level1.push_back({ 850,20, rand() % 9,0, 0,true,0,0,false,0,1});
+	Level1.push_back({ 150,120, rand() % 9,0, 0,true,0,0,false,0,2 });
+	Level1.push_back({ 350,120, rand() % 9,0, 0,true,0,0,false,0,2 });
+	Level1.push_back({ 550,120, rand() % 9,0,0 ,true,0,0,false,0,2});
+	Level1.push_back({ 750,120, rand() % 9,0, 0,true,0,0,false,0,2});
 	
 	
 	/*Level1[0] = {};
@@ -279,7 +293,9 @@ int main()
 						(BulletList[count].weaponPositionX>= Level1[inviders].invaderPositionX)) && 
 						(BulletList[count].weaponPositionY-80 <= Level1[inviders].invaderPositionY)){
 						bullEndPositionY = BulletList[count].weaponPositionY;;
-						Level1[inviders] = { 0,0,0, 0,false };
+						Level1[inviders].life = false;
+						//Level1[inviders] = { 0,0,0, 0,false };
+						RemoveLevel1(Level1, false);
 						Explosions.push_back({ BulletList[count].weaponPositionX,BulletList[count].weaponPositionY,false,0 });
 						invidersSpeed +=0.3*time;
 						first = true;
@@ -348,30 +364,60 @@ int main()
 				
 		}
 
+
+		//добавл€ем новые захватчики 
+		//потом 
+
+
 		for (int inviders = 0; inviders < Level1.size(); ++inviders) {
 
 			if (Level1[inviders].life) {
 				if ((Level1[inviders].speed == 0) || (Level1[inviders].speed == Level1.size() + 5)) {
-					
+					if (Level1[inviders].goingDown) {
+						Level1[inviders].goingDownSpeed += time;
+					}
+					if (Level1[inviders].column == 1 || Level1[inviders].column == 3) {
+						Level1[inviders].directionOfMovig = 0;
+					}
+					else if (Level1[inviders].column == 2) {
+						Level1[inviders].directionOfMovig = 1;
+					}
 					if (Level1[inviders].directionOfMovig == 0) {
-						Level1[inviders].invaderPositionX += invidersSpeed;
+						if (Level1[inviders].invaderPositionX < 850) {
+							Level1[inviders].invaderPositionX += invidersSpeed;
+						}
 						if (Level1[inviders].invaderPositionX >= 850) {
-							Level1[inviders].directionOfMovig = 1;
+							++Level1[inviders].stepForGoingToDown;
 						}
-						else if (Level1[inviders].invaderPositionX + 100 == Level1[inviders + 1].invaderPositionX) {
-							Level1[inviders].directionOfMovig = 1;
-							Level1[inviders + 1].directionOfMovig = 0;
-						}
+						/*else if ((Level1[inviders].invaderPositionX + 100 == Level1[inviders + 1].invaderPositionX) && 
+							(Level1[inviders].invaderPositionY == Level1[inviders + 1].invaderPositionY)) {
+						
+						}*/
 					}
 					if (Level1[inviders].directionOfMovig == 1) {
-						Level1[inviders].invaderPositionX -= invidersSpeed;;
+						
+						if (Level1[inviders].invaderPositionX > 50) {
+							Level1[inviders].invaderPositionX -= invidersSpeed;
+						}
 						if (Level1[inviders].invaderPositionX <= 50) {
-							Level1[inviders].directionOfMovig = 0;
+							++Level1[inviders].stepForGoingToDown;
 						}
-						else if (Level1[inviders].invaderPositionX - 100 == Level1[inviders - 1].invaderPositionX) {
-							Level1[inviders].directionOfMovig = 0;
-							Level1[inviders - 1].directionOfMovig = 0;
-						}
+						/*if ((Level1[inviders].invaderPositionX - 100 == Level1[inviders - 1].invaderPositionX) && 
+							(Level1[inviders].invaderPositionY == Level1[inviders - 1].invaderPositionY)) {
+						
+						}*/
+					}
+					if (Level1[inviders].stepForGoingToDown == 1) {
+						Level1[inviders].goingDown = true;
+						Level1[inviders].XCordinationDown = Level1[inviders].invaderPositionY + 100;
+
+					}
+					if (Level1[inviders].goingDownSpeed > 1) {
+						Level1[inviders].invaderPositionY = Level1[inviders].XCordinationDown;
+						Level1[inviders].goingDown = false;
+						Level1[inviders].goingDownSpeed = 0;
+						Level1[inviders].stepForGoingToDown = 0;
+						++Level1[inviders].column;
 					}
 				}
 			}
