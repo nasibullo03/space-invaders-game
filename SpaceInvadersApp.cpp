@@ -11,21 +11,21 @@ using namespace std;
 
 bool fire = false, weaponFire = true, leftFireRotation = false,
 rightFireRotation = false, clickOnKeyboardUP = false,
-first = true, hitTheTarget = false, endOfProgram = false;
+first = true, hitTheTarget = false, endOfProgram = false, shotOnProtection=false;
 
 int intweaponFire = 0, backgroundIndex=0;
 float weaponX, weaponY, bullEndPositionY, backgroundTimer, invidersTimer, invidersSpeed;
 
-Image bgImage, weaponImg, fireImg, bulletImg, invaders[9], explosionImg[50], background[25];
-Texture bgTexture, weaponTxre, fireTxre, bulletTxre,invidersTexture[9], explosionTexture[50], backgroundTexture[25];
-Sprite bgSprite, weaponSprite, fireSprite, bulletSprite, invidersSprite[9],  explosionSprite[50], backgroundSprite[25];
+Image bgImage, weaponImg, fireImg, bulletImg, invaders[9], explosionImg[50], background[25], protectionImg;
+Texture bgTexture, weaponTxre, fireTxre, bulletTxre,invidersTexture[9], explosionTexture[50], backgroundTexture[25], protectionTexture;
+Sprite bgSprite, weaponSprite, fireSprite, bulletSprite, invidersSprite[9],  explosionSprite[50], backgroundSprite[25], protectionSprite;
 
 struct WindowSize{
 	int width;
 	int height;
 };
 
-WindowSize WinSize = {1000,560};
+WindowSize WinSize = {1000,600};
 vector <WindowSize> WSize = { WinSize };
 
 RenderWindow window(sf::VideoMode(WSize[0].width, WSize[0].height), "SFML Application", Style::Close);
@@ -59,8 +59,35 @@ struct Explosion{
 };
 
 vector <Explosion> Explosions;
+
+
+
+struct SProtection {
+	float x;
+	float y;
+	bool visibility; 
+};
+
+vector <SProtection> Protection;
+
+struct protationExp {
+	float x;
+	float y;
+	bool expl;
+};
+
+vector < protationExp> protationExploration;
 //удалить взрывающие захватчики из структа вектора 
 void RemoveLevel1(std::vector<Invaders> & Level1, bool life) {
+	Level1.erase(
+		std::remove_if(Level1.begin(), Level1.end(), [&](Invaders const & v) {
+		return v.life == false;
+	}),
+		Level1.end());
+}
+
+//удалить взрывающие протекторы из структа вектора 
+void RemoveLevel1(std::vector<protationExp> & Level1, bool life) {
 	Level1.erase(
 		std::remove_if(Level1.begin(), Level1.end(), [&](Invaders const & v) {
 		return v.life == false;
@@ -76,6 +103,7 @@ void settingsImages() {
 	weaponImg.loadFromFile("images/weapon.png");//добавление оруж€ 
 	fireImg.loadFromFile("images/fire.png");//добавление эффект огны
 	bulletImg.loadFromFile("images/bullet.png");//добавление пул€
+	protectionImg.loadFromFile("images/protection.png");
 	//добавление захватчики 
 	for (int imgIndex = 0; imgIndex < 9; ++imgIndex) {
 		invaders[imgIndex].loadFromFile("images/inviders/100px/" + to_string(imgIndex) + ".png");
@@ -95,6 +123,8 @@ void settingsImages() {
 	weaponTxre.loadFromImage(weaponImg);
 	fireTxre.loadFromImage(fireImg);
 	bulletTxre.loadFromImage(bulletImg);
+	protectionTexture.loadFromImage(protectionImg);
+
 	//текстура дл€ захватчики 
 	for (int texture = 0; texture < 9; ++texture) {
 		invidersTexture[texture].loadFromImage(invaders[texture]);
@@ -109,7 +139,7 @@ void settingsImages() {
 	}
 
 	//добавл€ем спрайт дл€ текстуры
-
+	
 	bgSprite.setTexture(bgTexture);
 	bgSprite.setPosition(0, 0);
 	weaponSprite.setTexture(weaponTxre);
@@ -127,8 +157,11 @@ void settingsImages() {
 		15.0f / bulletSprite.getLocalBounds().width,
 		15.0f / bulletSprite.getLocalBounds().height
 	); // задаем размер пул€
-
-
+	protectionSprite.setTexture(protectionTexture);
+	protectionSprite.setScale(
+		30.0f / protectionSprite.getLocalBounds().width, 
+		30.0f / protectionSprite.getLocalBounds().height
+	);
 	//спрайт дл€ захватчики 
 	for (int sprite = 0; sprite < 9; ++sprite) {
 		invidersSprite[sprite].setTexture(invidersTexture[sprite]);
@@ -145,12 +178,24 @@ void settingsImages() {
 
 	for (int sprite = 0; sprite < 25; ++sprite) {
 		backgroundSprite[sprite].setTexture(backgroundTexture[sprite]);
-		backgroundSprite[sprite].setTextureRect(IntRect(140, 0, 1000, 560));
+		backgroundSprite[sprite].setTextureRect(IntRect(140, 0, 1000, 600));
 		backgroundSprite[sprite].setScale(
 			1000.0f / backgroundSprite[sprite].getLocalBounds().width,
-			560.0f / backgroundSprite[sprite].getLocalBounds().height
+			600.0f / backgroundSprite[sprite].getLocalBounds().height
 		);
 	}
+	//координации protection
+	for (int protectionIndex = 0; protectionIndex < 150; protectionIndex += 30) {
+
+		Protection.push_back({ float(50 + protectionIndex), float(WinSize.height - 220),true });
+		Protection.push_back({ float(50 + protectionIndex), float(WinSize.height - 250),true });
+		Protection.push_back({ float(425 + protectionIndex),float(WinSize.height - 220),true });
+		Protection.push_back({ float(425 + protectionIndex), float(WinSize.height - 250),true });
+		Protection.push_back({ float(800 + protectionIndex), float(WinSize.height - 220),true });
+		Protection.push_back({ float(800 + protectionIndex), float(WinSize.height - 250),true });
+	}
+
+
 
 }
 
@@ -164,6 +209,12 @@ void makeInvides() {
 
 //доступ на клавиатуру
 void keyboard(float time) {
+	
+	if (Keyboard::isKeyPressed(Keyboard::Escape)|| 
+	   (Keyboard::isKeyPressed(Keyboard::LAlt)||
+		(Keyboard::isKeyPressed(Keyboard::RAlt)) && Keyboard::isKeyPressed(Keyboard::F4))) {
+		window.close();
+	}
 	if (Keyboard::isKeyPressed(Keyboard::Left) ||
 		Keyboard::isKeyPressed(Keyboard::A) ||
 		Keyboard::isKeyPressed(Keyboard::Num4) ||
@@ -261,29 +312,48 @@ void bullet(float time) {
 			if (BulletList[count].weaponPositionY < WSize[0].height - 150) {
 				clickOnKeyboardUP = false;
 			}
-			for (int inviders = 0; inviders < Level1.size(); ++inviders) {
+			
+				for (int inviders = 0; inviders < Level1.size(); ++inviders) {
 
-				if (((BulletList[count].weaponPositionX <= Level1[inviders].invaderPositionX + 100) &&
-					(BulletList[count].weaponPositionX >= Level1[inviders].invaderPositionX)) &&
-					(BulletList[count].weaponPositionY - 80 <= Level1[inviders].invaderPositionY)) {
-					bullEndPositionY = BulletList[count].weaponPositionY;;
-					Level1[inviders].life = false;
-					RemoveLevel1(Level1, false);
-					Explosions.push_back({ BulletList[count].weaponPositionX,BulletList[count].weaponPositionY,false,0 });
-					first = true;
-					BulletList[count].bullet = false;
-					BulletList.clear();
+					if (((BulletList[count].weaponPositionX <= Level1[inviders].invaderPositionX + 100) &&
+						(BulletList[count].weaponPositionX >= Level1[inviders].invaderPositionX)) &&
+						(BulletList[count].weaponPositionY - 80 <= Level1[inviders].invaderPositionY)) {
+						bullEndPositionY = BulletList[count].weaponPositionY;;
+						Level1[inviders].life = false;
+						RemoveLevel1(Level1, false);
+						Explosions.push_back({ BulletList[count].weaponPositionX,BulletList[count].weaponPositionY,false,0 });
+						first = true;
+						BulletList[count].bullet = false;
+						BulletList.clear();
 
-					break;
+						break;
+					}
+
 				}
 
-			}
+				for (int indexx = 0; indexx < Protection.size(); ++indexx) {
+					if (((Protection[indexx].x-1 <= BulletList[count].weaponPositionX)  &&
+						(Protection[indexx].x + 35 >= BulletList[count].weaponPositionX )) &&
+						(Protection[indexx].y >= BulletList[count].weaponPositionY - 30 )) {
+						bullEndPositionY = BulletList[count].weaponPositionY;;
+						
+						//RemoveLevel1(Level1, false);
+						//Explosions.push_back({ BulletList[count].weaponPositionX,BulletList[count].weaponPositionY,false,0 });
+						first = true;
+						BulletList[count].bullet = false;
+						BulletList.clear();
 
-			bulletSprite.setPosition(BulletList[count].weaponPositionX, BulletList[count].weaponPositionY);
-			BulletList[count].weaponPositionY -= float(0.8*time);
-			window.draw(bulletSprite);
-			break;
+						break;
+					}
+				}
 
+				bulletSprite.setPosition(BulletList[count].weaponPositionX, BulletList[count].weaponPositionY);
+				BulletList[count].weaponPositionY -= float(0.8*time);
+				window.draw(bulletSprite);
+				break;
+
+			
+			
 		}
 
 		if (BulletList[count].weaponPositionY < bullEndPositionY) {
@@ -347,10 +417,8 @@ void addInviders() {
 	} else if (Level1.size() == 0) {
 		Level1.push_back({ 50,-100, rand() % 9, 0, true, 0 });
 	}
-	
-	
-
 }
+
 //двигать захватчики 
 void moveInviders(float time) {
 	if (Level1.size() > 0) {
@@ -365,8 +433,7 @@ void moveInviders(float time) {
 			}
 
 			if (Level1[inviders].invaderPositionY >= float(20) && Level1[inviders].invaderPositionY <= float(30)){
-				Level1[inviders].invaderPositionY == float(20);
-				//cout << Level1[inviders].invaderPositionY << endl;
+				Level1[inviders].invaderPositionY = float(20);
 				Level1[inviders].column = 1;
 			}
 			invidersTimer = 0;
@@ -435,19 +502,9 @@ void moveInviders(float time) {
 				Level1[inviders].invaderPositionY = 320;
 				Level1[inviders].column = 4;
 			}
-
-			
-			
-			
-			cout << 0.05*time << endl;
 			window.draw(invidersSprite[Level1[inviders].invidersIndex]);
-
 		}
-		
-		
 	}
-	
-	
 }
 
 //взорвать захватчики
@@ -468,7 +525,6 @@ void explosions(float time) {
 					}
 					Explosions[index].explosionSpeed = 0;
 				}
-
 			}
 
 		}
@@ -490,6 +546,20 @@ void showBackground(float time) {
 	}
 }
 
+void protection() {
+	
+	for (int protectionIndex = 0; protectionIndex < Protection.size(); ++protectionIndex) {
+		protectionSprite.setPosition(Protection[protectionIndex].x, Protection[protectionIndex].y);
+		window.draw(protectionSprite);
+	}
+		
+		
+		
+
+	
+
+	
+}
 
 int main()
 {
@@ -517,6 +587,7 @@ int main()
 		window.clear();//отчистить окно 
 
 		showBackground(time);
+		protection();
 		fireWhileShooting(); // 
 		fireFromWeapon();
 		bullet(time);
