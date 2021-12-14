@@ -11,12 +11,10 @@ using namespace std;
 
 bool fire = false, weaponFire = true, leftFireRotation = false,
 rightFireRotation = false, clickOnKeyboardUP = false,
-first = true, hitTheTarget = false, endOfProgram = false, break1 = false, break2 = false,
-explosion = false;
+first = true, hitTheTarget = false, endOfProgram = false;
 
-int intweaponFire = 0, invider = 0, backgroundIndex=0;
-int intBullet = 0, step = 0, speed = 0;
-float weaponX, weaponY, invidersSpeed = 1, bullEndPositionY, backgroundTimer;
+int intweaponFire = 0, backgroundIndex=0;
+float weaponX, weaponY, bullEndPositionY, backgroundTimer, invidersTimer, invidersSpeed;
 
 Image bgImage, weaponImg, fireImg, bulletImg, invaders[9], explosionImg[50], background[25];
 Texture bgTexture, weaponTxre, fireTxre, bulletTxre,invidersTexture[9], explosionTexture[50], backgroundTexture[25];
@@ -46,12 +44,8 @@ struct Invaders {
 	float invaderPositionY;
 	int invidersIndex;
 	int speed;
-	int directionOfMovig;
 	bool life;
-	int stepForGoingToDown;
-	float goingDownSpeed;
-	bool goingDown;
-	float XCordinationDown;
+	int column; 
 };
 
 vector <Invaders> Level1;
@@ -162,17 +156,10 @@ void settingsImages() {
 
 //первоначальные захватчики и их свойств
 void makeInvides() {
-	srand(time_t(NULL));
+	
 	//структура Level 1
-	Level1.push_back({ 50,20,   rand() % 9,0, 0,true,0,0,false,0 });
-	Level1.push_back({ 250,20, rand() % 9,0, 0,true,0,0,false,0 });
-	Level1.push_back({ 450,20, rand() % 9,0, 0,true,0,0,false,0 });
-	Level1.push_back({ 650,20, rand() % 9,0, 0,true,0,0,false,0 });
-	Level1.push_back({ 850,20, rand() % 9,0, 0,true,0,0,false,0 });
-	Level1.push_back({ 150,120, rand() % 9,0, 0,true,0,0,false,0 });
-	Level1.push_back({ 350,120, rand() % 9,0, 0,true,0,0,false,0 });
-	Level1.push_back({ 550,120, rand() % 9,0,0 ,true,0,0,false,0 });
-	Level1.push_back({ 750,120, rand() % 9,0, 0,true,0,0,false,0 });
+	
+
 }
 
 //доступ на клавиатуру
@@ -281,10 +268,8 @@ void bullet(float time) {
 					(BulletList[count].weaponPositionY - 80 <= Level1[inviders].invaderPositionY)) {
 					bullEndPositionY = BulletList[count].weaponPositionY;;
 					Level1[inviders].life = false;
-					//Level1[inviders] = { 0,0,0, 0,false };
 					RemoveLevel1(Level1, false);
 					Explosions.push_back({ BulletList[count].weaponPositionX,BulletList[count].weaponPositionY,false,0 });
-					invidersSpeed += 0.5 * time;
 					first = true;
 					BulletList[count].bullet = false;
 					BulletList.clear();
@@ -295,7 +280,7 @@ void bullet(float time) {
 			}
 
 			bulletSprite.setPosition(BulletList[count].weaponPositionX, BulletList[count].weaponPositionY);
-			BulletList[count].weaponPositionY -= float(0.5*time);
+			BulletList[count].weaponPositionY -= float(0.8*time);
 			window.draw(bulletSprite);
 			break;
 
@@ -355,77 +340,114 @@ void fireFromWeapon() {
 	}
 }
 
-//двигать захватчики 
-void moveInviders() {
-	for (int inviders = 0; inviders < Level1.size(); ++inviders) {
-
-		if (Level1[inviders].life) {
-			if ((Level1[inviders].speed == 0) || (Level1[inviders].speed == Level1.size() + 5)) {
-				if (Level1[inviders].invaderPositionY == 20 || Level1[inviders].invaderPositionY == 220) {
-					Level1[inviders].directionOfMovig = 0;
-					if (Level1[inviders].invaderPositionX < 850) {
-						Level1[inviders].invaderPositionX += invidersSpeed;
-					}
-					if (Level1[inviders].invaderPositionX >= 850) {
-						Level1[inviders].goingDown = true;
-					}
-					/*else if ((Level1[inviders].invaderPositionX + 100 == Level1[inviders + 1].invaderPositionX) &&
-						(Level1[inviders].invaderPositionY == Level1[inviders + 1].invaderPositionY)) {
-
-					}*/
-				}
-				else if (Level1[inviders].invaderPositionY == 120 || Level1[inviders].invaderPositionY == 320) {
-					Level1[inviders].directionOfMovig = 1;
-
-					if (Level1[inviders].invaderPositionX > 50) {
-						Level1[inviders].invaderPositionX -= invidersSpeed;
-					}
-					if (Level1[inviders].invaderPositionX <= 50) {
-						++Level1[inviders].stepForGoingToDown;
-						Level1[inviders].goingDown = true;
-					}
-
-				}
-
-				if (Level1[inviders].goingDown) {
-
-					Level1[inviders].invaderPositionY += 3;
-
-					if (Level1[inviders].invaderPositionY >= 20 ||
-						Level1[inviders].invaderPositionY >= 120 ||
-						Level1[inviders].invaderPositionY >= 220 ||
-						Level1[inviders].invaderPositionY >= 320) {
-						Level1[inviders].goingDownSpeed = 0;
-						++Level1[inviders].stepForGoingToDown;
-						Level1[inviders].goingDown = false;
-					}
-
-
-				}
-
-			}
-		}
-
-		if (!Level1[inviders].life) {
-			continue;
-		}
-
-		for (int sprite = 0; sprite < 9; ++sprite) {
-			invidersSprite[sprite].setPosition(Level1[inviders].invaderPositionX, Level1[inviders].invaderPositionY);
-		}
-
-		window.draw(invidersSprite[Level1[inviders].invidersIndex]);
-		if (Level1[inviders].speed == 0 || Level1[inviders].speed == Level1.size() + 5) {
-			++Level1[inviders].invidersIndex;
-			if (Level1[inviders].invidersIndex == 9) {
-				Level1[inviders].invidersIndex = 0;
-			}
-		}
-		else if (Level1[inviders].speed == 2 * Level1.size() + 10) {
-			Level1[inviders].speed = 0;
-		}
-		++Level1[inviders].speed;
+void addInviders() {
+	srand(time_t(NULL));
+	if (Level1.size() > 0 && Level1[0].invaderPositionY == 20 && Level1[0].invaderPositionX >= 130) {
+		Level1.insert(Level1.cbegin(), { 50,-100, rand() % 9, 0, true, 0 });
+	} else if (Level1.size() == 0) {
+		Level1.push_back({ 50,-100, rand() % 9, 0, true, 0 });
 	}
+	
+	
+
+}
+//двигать захватчики 
+void moveInviders(float time) {
+	if (Level1.size() > 0) {
+		invidersTimer += time;
+		
+		for (int inviders = 0; inviders < Level1.size(); ++inviders) {
+			
+			if (Level1[inviders].invaderPositionY < float(20)) {
+				if (invidersTimer > 1) {
+					Level1[inviders].invaderPositionY += float(0.5);
+				}
+			}
+
+			if (Level1[inviders].invaderPositionY >= float(20) && Level1[inviders].invaderPositionY <= float(30)){
+				Level1[inviders].invaderPositionY == float(20);
+				//cout << Level1[inviders].invaderPositionY << endl;
+				Level1[inviders].column = 1;
+			}
+			invidersTimer = 0;
+	
+			for (int sprite = 0; sprite < 9; ++sprite) {
+				invidersSprite[sprite].setPosition(Level1[inviders].invaderPositionX, Level1[inviders].invaderPositionY);
+			}
+			//1 column
+			if (Level1[inviders].column == 1) {
+				Level1[inviders].invaderPositionX += float(0.05*time); // двигается на право 
+			}
+
+			if (Level1[inviders].invaderPositionX >= float(850) && Level1[inviders].column == 1) {
+				Level1[inviders].invaderPositionX = float(850);
+				Level1[inviders].column = 6;//спускатся из 1 column в 2 column
+			}
+			if (Level1[inviders].column == 6) {
+				Level1[inviders].invaderPositionX = float(850);
+				Level1[inviders].invaderPositionY += float(0.05*time); //по шагам спускается вниз 
+			}
+			//column 2 
+			if (Level1[inviders].invaderPositionY >= float(120) && 
+				Level1[inviders].invaderPositionY <= float(200) && 
+				Level1[inviders].column == 6) {
+				Level1[inviders].invaderPositionY = 120;
+				Level1[inviders].column = 2;
+			}
+
+			if (Level1[inviders].column == 2) {
+				Level1[inviders].invaderPositionX -= float(0.05*time); //двигается налево
+			}
+			
+			if (Level1[inviders].invaderPositionX <= float(50) && Level1[inviders].column==2) {
+				Level1[inviders].invaderPositionX = float(50);
+				Level1[inviders].column = 7;//спускатся из 2 column в 3 column
+				Level1[inviders].invaderPositionY += float(0.05*time);
+			}
+			if (Level1[inviders].column == 7) {
+				Level1[inviders].invaderPositionX = float(50);
+				Level1[inviders].invaderPositionY += float(0.05*time);// спускается вниз
+
+			}
+			//сolumn 3
+			if (Level1[inviders].invaderPositionY >= float(220) && 
+				Level1[inviders].invaderPositionY <= float(250) && 
+				Level1[inviders].column == 7) {
+				Level1[inviders].invaderPositionY = 220;
+				Level1[inviders].column = 3;
+			}
+			
+			if (Level1[inviders].column == 3) {
+				Level1[inviders].invaderPositionX += float(0.05*time); // двигается на право 
+			}
+
+			if ((Level1[inviders].invaderPositionX >= float(850)) && (Level1[inviders].column == 3)) {
+				Level1[inviders].invaderPositionX = float(850);
+				Level1[inviders].column = 8;//спускатся из 3 column в 4 column
+			}
+			
+			if (Level1[inviders].column == 8) {
+				Level1[inviders].invaderPositionY += float(0.05*time); // ch
+			}
+			if (Level1[inviders].invaderPositionY >= float(320) &&
+				Level1[inviders].invaderPositionY <= float(350) &&
+				Level1[inviders].column == 8) {
+				Level1[inviders].invaderPositionY = 320;
+				Level1[inviders].column = 4;
+			}
+
+			
+			
+			
+			cout << 0.05*time << endl;
+			window.draw(invidersSprite[Level1[inviders].invidersIndex]);
+
+		}
+		
+		
+	}
+	
+	
 }
 
 //взорвать захватчики
@@ -467,10 +489,11 @@ void showBackground(float time) {
 		}
 	}
 }
+
+
 int main()
 {
 	settingsImages();
-	makeInvides();
 	
 	Clock clock; // создает переменную времени, т.о. привязка ко времени (а не загруженности мощьности процессора)
 
@@ -500,11 +523,14 @@ int main()
 
 		//добавляем новые захватчики 
 		//потом 
-		moveInviders();
+		addInviders();
+		moveInviders(time);
+	
 		explosions(time);
 		window.draw(weaponSprite);
 		window.display();
+		
 	}
-
+	
 	return 0;
 }
