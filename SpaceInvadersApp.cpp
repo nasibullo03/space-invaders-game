@@ -60,8 +60,6 @@ struct Explosion{
 
 vector <Explosion> Explosions;
 
-
-
 struct SProtection {
 	float x;
 	float y;
@@ -70,13 +68,7 @@ struct SProtection {
 
 vector <SProtection> Protection;
 
-struct protationExp {
-	float x;
-	float y;
-	bool expl;
-};
 
-vector < protationExp> protationExploration;
 //удалить взрывающие захватчики из структа вектора 
 void RemoveLevel1(std::vector<Invaders> & Level1, bool life) {
 	Level1.erase(
@@ -87,12 +79,21 @@ void RemoveLevel1(std::vector<Invaders> & Level1, bool life) {
 }
 
 //удалить взрывающие протекторы из структа вектора 
-void RemoveLevel1(std::vector<protationExp> & Level1, bool life) {
-	Level1.erase(
-		std::remove_if(Level1.begin(), Level1.end(), [&](Invaders const & v) {
-		return v.life == false;
+void RemoveProtection(std::vector<SProtection> & Protection, bool visibility) {
+	Protection.erase(
+		std::remove_if(Protection.begin(), Protection.end(), [&](SProtection const & v) {
+		return v.visibility == false;
 	}),
-		Level1.end());
+		Protection.end());
+}
+
+//отчистит ветора после взрыва 
+void RemoveExplosion(std::vector<Explosion> & Explosions, bool endOfExplosion) {
+	Explosions.erase(
+		std::remove_if(Explosions.begin(), Explosions.end(), [&](Explosion const & v) {
+		return v.endOfExplosion == true;
+	}),
+		Explosions.end());
 }
 
 //импортирование картинки и обработики картинки
@@ -332,13 +333,13 @@ void bullet(float time) {
 				}
 
 				for (int indexx = 0; indexx < Protection.size(); ++indexx) {
-					if (((Protection[indexx].x-1 <= BulletList[count].weaponPositionX)  &&
-						(Protection[indexx].x + 35 >= BulletList[count].weaponPositionX )) &&
-						(Protection[indexx].y >= BulletList[count].weaponPositionY - 30 )) {
+					if (((Protection[indexx].x - 1 <= BulletList[count].weaponPositionX) &&
+						(Protection[indexx].x + 35 >= BulletList[count].weaponPositionX)) &&
+						(Protection[indexx].y >= BulletList[count].weaponPositionY - 30)) {
 						bullEndPositionY = BulletList[count].weaponPositionY;;
-						
-						//RemoveLevel1(Level1, false);
-						//Explosions.push_back({ BulletList[count].weaponPositionX,BulletList[count].weaponPositionY,false,0 });
+						Protection[indexx].visibility = false;
+						RemoveProtection(Protection, false);
+						Explosions.push_back({ BulletList[count].weaponPositionX,BulletList[count].weaponPositionY,false,0 });
 						first = true;
 						BulletList[count].bullet = false;
 						BulletList.clear();
@@ -432,9 +433,14 @@ void moveInviders(float time) {
 				}
 			}
 
-			if (Level1[inviders].invaderPositionY >= float(20) && Level1[inviders].invaderPositionY <= float(30)){
+			if (Level1[inviders].invaderPositionY >= float(20) && 
+				Level1[inviders].invaderPositionY <= float(30) && 
+				Level1[inviders].column==0){
 				Level1[inviders].invaderPositionY = float(20);
+				
 				Level1[inviders].column = 1;
+				
+				
 			}
 			invidersTimer = 0;
 	
@@ -443,19 +449,25 @@ void moveInviders(float time) {
 			}
 			//1 column
 			if (Level1[inviders].column == 1) {
-				Level1[inviders].invaderPositionX += float(0.05*time); // двигается на право 
+				if (Level1[inviders].invaderPositionX + 100 != Level1[inviders + 1].invaderPositionX) {
+					Level1[inviders].invaderPositionX += float(0.05*time); // двигается на право 
+				}
+				
+
 			}
 
 			if (Level1[inviders].invaderPositionX >= float(850) && Level1[inviders].column == 1) {
 				Level1[inviders].invaderPositionX = float(850);
 				Level1[inviders].column = 6;//спускатся из 1 column в 2 column
+				cout << Level1[inviders].invaderPositionX << endl;
 			}
 			if (Level1[inviders].column == 6) {
 				Level1[inviders].invaderPositionX = float(850);
+				//if(Level1[inviders].invaderPositionX)
 				Level1[inviders].invaderPositionY += float(0.05*time); //по шагам спускается вниз 
 			}
 			//column 2 
-			if (Level1[inviders].invaderPositionY >= float(120) && 
+			if (Level1[inviders].invaderPositionY >= float(119) && 
 				Level1[inviders].invaderPositionY <= float(200) && 
 				Level1[inviders].column == 6) {
 				Level1[inviders].invaderPositionY = 120;
@@ -492,16 +504,7 @@ void moveInviders(float time) {
 				Level1[inviders].invaderPositionX = float(850);
 				Level1[inviders].column = 8;//спускатся из 3 column в 4 column
 			}
-			
-			if (Level1[inviders].column == 8) {
-				Level1[inviders].invaderPositionY += float(0.05*time); // ch
-			}
-			if (Level1[inviders].invaderPositionY >= float(320) &&
-				Level1[inviders].invaderPositionY <= float(350) &&
-				Level1[inviders].column == 8) {
-				Level1[inviders].invaderPositionY = 320;
-				Level1[inviders].column = 4;
-			}
+		
 			window.draw(invidersSprite[Level1[inviders].invidersIndex]);
 		}
 	}
@@ -528,7 +531,9 @@ void explosions(float time) {
 			}
 
 		}
+		RemoveExplosion(Explosions, true);
 	}
+
 }
 
 //показад анимация фона 
@@ -553,12 +558,6 @@ void protection() {
 		window.draw(protectionSprite);
 	}
 		
-		
-		
-
-	
-
-	
 }
 
 int main()
