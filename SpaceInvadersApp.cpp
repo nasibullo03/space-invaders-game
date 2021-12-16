@@ -46,6 +46,7 @@ struct Invaders {
 	int speed;
 	bool life;
 	int column; 
+	bool stop;
 };
 
 vector <Invaders> Level1;
@@ -333,8 +334,8 @@ void bullet(float time) {
 				}
 
 				for (int indexx = 0; indexx < Protection.size(); ++indexx) {
-					if (((Protection[indexx].x - 1 <= BulletList[count].weaponPositionX) &&
-						(Protection[indexx].x + 35 >= BulletList[count].weaponPositionX)) &&
+					if (((Protection[indexx].x-15  <= BulletList[count].weaponPositionX) &&
+						(Protection[indexx].x + 30 >= BulletList[count].weaponPositionX)) &&
 						(Protection[indexx].y >= BulletList[count].weaponPositionY - 30)) {
 						bullEndPositionY = BulletList[count].weaponPositionY;;
 						Protection[indexx].visibility = false;
@@ -414,9 +415,9 @@ void fireFromWeapon() {
 void addInviders() {
 	srand(time_t(NULL));
 	if (Level1.size() > 0 && Level1[0].invaderPositionY == 20 && Level1[0].invaderPositionX >= 130) {
-		Level1.insert(Level1.cbegin(), { 50,-100, rand() % 9, 0, true, 0 });
+		Level1.insert(Level1.cbegin(), { 50,-100, rand() % 9, 0, true, 0, false });
 	} else if (Level1.size() == 0) {
-		Level1.push_back({ 50,-100, rand() % 9, 0, true, 0 });
+		Level1.push_back({ 50,-100, rand() % 9, 0, true, 0, false });
 	}
 }
 
@@ -459,7 +460,6 @@ void moveInviders(float time) {
 			if (Level1[inviders].invaderPositionX >= float(850) && Level1[inviders].column == 1) {
 				Level1[inviders].invaderPositionX = float(850);
 				Level1[inviders].column = 6;//спускатс€ из 1 column в 2 column
-				cout << Level1[inviders].invaderPositionX << endl;
 			}
 			if (Level1[inviders].column == 6) {
 				Level1[inviders].invaderPositionX = float(850);
@@ -590,9 +590,6 @@ int main()
 		fireWhileShooting(); // 
 		fireFromWeapon();
 		bullet(time);
-
-		//добавл€ем новые захватчики 
-		//потом 
 		addInviders();
 		moveInviders(time);
 	
