@@ -13,7 +13,7 @@ using namespace std;
 bool fire = false, weaponFire = true, leftFireRotation = false,
 rightFireRotation = false, clickOnKeyboardUP = false,
 first = true, hitTheTarget = false, endOfProgram = false, shotOnProtection=false;
-int score = 0;
+int score = 0, life=3;
 int intweaponFire = 0, backgroundIndex=0;
 float weaponX, weaponY, bullEndPositionY, backgroundTimer, invidersTimer, invidersSpeed;
 
@@ -21,7 +21,7 @@ Image bgImage, weaponImg, fireImg, bulletImg, invaders[9], explosionImg[50], bac
 Texture bgTexture, weaponTxre, fireTxre, bulletTxre,invidersTexture[9], explosionTexture[50], backgroundTexture[25], protectionTexture;
 Sprite bgSprite, weaponSprite, fireSprite, bulletSprite, invidersSprite[9],  explosionSprite[50], backgroundSprite[25], protectionSprite;
 Font font;
-Text fontText("", font, 20);
+Text scoreText("", font, 20), lifeText("", font, 20);
 
 struct WindowSize{
 	int width;
@@ -206,15 +206,22 @@ void settingsImages() {
 
 void fontsProsession() {
 	font.loadFromFile("fonts/ChargeVector.ttf");
-	//fontText.setColor(Color::Red);
-	fontText.setStyle(Text::Bold);
+	//scoreText.setColor(Color::Red);
+	scoreText.setStyle(Text::Bold);
+	lifeText.setStyle(Text::Bold);
 
 }
 
 void printingTextWithFont() {
-	fontText.setString("Score: " + to_string(score));
-	fontText.setPosition(WinSize.width - 200, 5);
-	window.draw(fontText);
+	
+	lifeText.setString("Life: " + to_string(life));
+	lifeText.setPosition(WinSize.width - 320, 4);
+
+	scoreText.setString("Score: " + to_string(score));
+	scoreText.setPosition(WinSize.width - 220, 4);
+	
+	window.draw(lifeText);
+	window.draw(scoreText);
 
 }
 
@@ -446,27 +453,27 @@ void moveInviders(float time) {
 		for (int inviders = 0; inviders < Level1.size(); ++inviders) {
 			
 			//соблюдение растояние между inviders
-			if((Level1[inviders].invaderPositionX+100 <= Level1[inviders+1].invaderPositionX && 
+			if((Level1.size()>2 && Level1.size()-1!=inviders && Level1[inviders].invaderPositionX+100 <= Level1[inviders+1].invaderPositionX &&
 				Level1[inviders].invaderPositionX + 105 >= Level1[inviders + 1].invaderPositionX && 
 				Level1[inviders].invaderPositionY == Level1[inviders + 1].invaderPositionY && (
 				Level1[inviders].column==1 || Level1[inviders].column == 3))) {
 				//соблюдают в colum1 и column 3  
 				Level1[inviders].stop=true;
-			} else if ((Level1[inviders+1].invaderPositionX + 100 <= Level1[inviders].invaderPositionX &&
+			} else if ((Level1.size() > 2 && Level1.size() - 1 != inviders && Level1[inviders+1].invaderPositionX + 100 <= Level1[inviders].invaderPositionX &&
 				Level1[inviders+1].invaderPositionX + 105 >= Level1[inviders].invaderPositionX &&
 				Level1[inviders].invaderPositionY == Level1[inviders + 1].invaderPositionY &&
 				Level1[inviders].column == 2)) {
 				//соблюдают в colum2
 				Level1[inviders].stop = true;
 
-			} else if ((Level1[inviders].invaderPositionY + 100 <= Level1[inviders + 1].invaderPositionY &&
+			} else if ((Level1.size() > 2 && Level1.size() - 1 != inviders && Level1[inviders].invaderPositionY + 100 <= Level1[inviders + 1].invaderPositionY &&
 				Level1[inviders].invaderPositionY <= Level1[inviders + 1].invaderPositionY &&
 				Level1[inviders].invaderPositionY + 105 >= Level1[inviders + 1].invaderPositionY &&
 				Level1[inviders + 1].invaderPositionX <= 160 && inviders != 0)) {
 				//стоят на месте когда другие захватчики спускаются из column 1 в column 2 
 				Level1[inviders].stop = true;
 
-			} else if ((Level1[inviders].invaderPositionY + 100 <= Level1[inviders + 1].invaderPositionY &&
+			} else if ((Level1.size() > 2 && Level1.size() - 1 != inviders && Level1[inviders].invaderPositionY + 100 <= Level1[inviders + 1].invaderPositionY &&
 				Level1[inviders].invaderPositionY <= Level1[inviders + 1].invaderPositionY &&
 				Level1[inviders].invaderPositionY + 105 >= Level1[inviders + 1].invaderPositionY &&
 				Level1[inviders + 1].invaderPositionX >= 740 && inviders != 0)) {
