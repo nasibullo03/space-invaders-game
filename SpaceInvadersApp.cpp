@@ -425,12 +425,46 @@ void addInviders() {
 void moveInviders(float time) {
 	if (Level1.size() > 0) {
 		invidersTimer += time;
-		
 		for (int inviders = 0; inviders < Level1.size(); ++inviders) {
 			
+			
+			if((Level1[inviders].invaderPositionX+100 <= Level1[inviders+1].invaderPositionX && 
+				Level1[inviders].invaderPositionX + 105 >= Level1[inviders + 1].invaderPositionX && 
+				Level1[inviders].invaderPositionY == Level1[inviders + 1].invaderPositionY && (
+				Level1[inviders].column==1 || Level1[inviders].column == 3))) {
+				
+				Level1[inviders].stop=true;
+			} else if ((Level1[inviders+1].invaderPositionX + 100 <= Level1[inviders].invaderPositionX &&
+				Level1[inviders+1].invaderPositionX + 105 >= Level1[inviders].invaderPositionX &&
+				Level1[inviders].invaderPositionY == Level1[inviders + 1].invaderPositionY &&
+				Level1[inviders].column == 2)) {
+				
+				Level1[inviders].stop = true;
+
+			} else if ((Level1[inviders].invaderPositionY + 100 <= Level1[inviders + 1].invaderPositionY &&
+				Level1[inviders].invaderPositionY <= Level1[inviders + 1].invaderPositionY &&
+				Level1[inviders].invaderPositionY + 105 >= Level1[inviders + 1].invaderPositionY &&
+				Level1[inviders + 1].invaderPositionX <= 160 && inviders != 0)) {
+				Level1[inviders].stop = true;
+			} else if ((Level1[inviders].invaderPositionY + 100 <= Level1[inviders + 1].invaderPositionY &&
+				Level1[inviders].invaderPositionY <= Level1[inviders + 1].invaderPositionY &&
+				Level1[inviders].invaderPositionY + 105 >= Level1[inviders + 1].invaderPositionY &&
+				Level1[inviders + 1].invaderPositionX >= 740 && inviders != 0)) {
+				Level1[inviders].stop = true;
+			}
+			else {
+				Level1[inviders].stop = false;
+			}
+
+		    
+			
+			//изменит кардан даркор /\ захватчико бояд вакти наздик шуданба истан
+
 			if (Level1[inviders].invaderPositionY < float(20)) {
 				if (invidersTimer > 1) {
-					Level1[inviders].invaderPositionY += float(0.5);
+					if (!Level1[inviders].stop) {
+						Level1[inviders].invaderPositionY += float(0.5);
+					}
 				}
 			}
 
@@ -451,7 +485,9 @@ void moveInviders(float time) {
 			//1 column
 			if (Level1[inviders].column == 1) {
 				if (Level1[inviders].invaderPositionX + 100 != Level1[inviders + 1].invaderPositionX) {
-					Level1[inviders].invaderPositionX += float(0.05*time); // двигается на право 
+					if (!Level1[inviders].stop) {
+						Level1[inviders].invaderPositionX += float(0.05*time); // двигается на право 
+					}
 				}
 				
 
@@ -463,8 +499,9 @@ void moveInviders(float time) {
 			}
 			if (Level1[inviders].column == 6) {
 				Level1[inviders].invaderPositionX = float(850);
-				//if(Level1[inviders].invaderPositionX)
-				Level1[inviders].invaderPositionY += float(0.05*time); //по шагам спускается вниз 
+				if (!Level1[inviders].stop) {
+					Level1[inviders].invaderPositionY += float(0.05*time); //по шагам спускается вниз 
+				}
 			}
 			//column 2 
 			if (Level1[inviders].invaderPositionY >= float(119) && 
@@ -475,18 +512,24 @@ void moveInviders(float time) {
 			}
 
 			if (Level1[inviders].column == 2) {
-				Level1[inviders].invaderPositionX -= float(0.05*time); //двигается налево
+				if (!Level1[inviders].stop) {
+					Level1[inviders].invaderPositionX -= float(0.05*time); //двигается налево
+				}
 			}
 			
 			if (Level1[inviders].invaderPositionX <= float(50) && Level1[inviders].column==2) {
+
 				Level1[inviders].invaderPositionX = float(50);
 				Level1[inviders].column = 7;//спускатся из 2 column в 3 column
-				Level1[inviders].invaderPositionY += float(0.05*time);
+				if (!Level1[inviders].stop) {
+					Level1[inviders].invaderPositionY += float(0.05*time);
+				}
 			}
 			if (Level1[inviders].column == 7) {
 				Level1[inviders].invaderPositionX = float(50);
-				Level1[inviders].invaderPositionY += float(0.05*time);// спускается вниз
-
+				if (!Level1[inviders].stop) {
+					Level1[inviders].invaderPositionY += float(0.05*time);// спускается вниз
+				}
 			}
 			//сolumn 3
 			if (Level1[inviders].invaderPositionY >= float(220) && 
@@ -497,7 +540,9 @@ void moveInviders(float time) {
 			}
 			
 			if (Level1[inviders].column == 3) {
-				Level1[inviders].invaderPositionX += float(0.05*time); // двигается на право 
+				if (!Level1[inviders].stop) {
+					Level1[inviders].invaderPositionX += float(0.05*time); // двигается на право 
+				}
 			}
 
 			if ((Level1[inviders].invaderPositionX >= float(850)) && (Level1[inviders].column == 3)) {
@@ -584,7 +629,6 @@ int main()
 		keyboard(time);//доступ на клавиатуру и вдигать объекты с помощью клавиатуру
 
 		window.clear();//отчистить окно 
-
 		showBackground(time);
 		protection();
 		fireWhileShooting(); // 
@@ -592,7 +636,6 @@ int main()
 		bullet(time);
 		addInviders();
 		moveInviders(time);
-	
 		explosions(time);
 		window.draw(weaponSprite);
 		window.display();
