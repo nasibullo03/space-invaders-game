@@ -5,6 +5,7 @@
 #include <cmath>
 #include <ctime>
 #include <string>
+//#include <sstring>
 
 using namespace sf;
 using namespace std;
@@ -12,13 +13,15 @@ using namespace std;
 bool fire = false, weaponFire = true, leftFireRotation = false,
 rightFireRotation = false, clickOnKeyboardUP = false,
 first = true, hitTheTarget = false, endOfProgram = false, shotOnProtection=false;
-
+int score = 0;
 int intweaponFire = 0, backgroundIndex=0;
 float weaponX, weaponY, bullEndPositionY, backgroundTimer, invidersTimer, invidersSpeed;
 
 Image bgImage, weaponImg, fireImg, bulletImg, invaders[9], explosionImg[50], background[25], protectionImg;
 Texture bgTexture, weaponTxre, fireTxre, bulletTxre,invidersTexture[9], explosionTexture[50], backgroundTexture[25], protectionTexture;
 Sprite bgSprite, weaponSprite, fireSprite, bulletSprite, invidersSprite[9],  explosionSprite[50], backgroundSprite[25], protectionSprite;
+Font font;
+Text fontText("", font, 20);
 
 struct WindowSize{
 	int width;
@@ -201,6 +204,20 @@ void settingsImages() {
 
 }
 
+void fontsProsession() {
+	font.loadFromFile("fonts/ChargeVector.ttf");
+	//fontText.setColor(Color::Red);
+	fontText.setStyle(Text::Bold);
+
+}
+
+void printingTextWithFont() {
+	fontText.setString("Score: " + to_string(score));
+	fontText.setPosition(WinSize.width - 200, 5);
+	window.draw(fontText);
+
+}
+
 //первоначальные захватчики и их свойств
 void makeInvides() {
 	
@@ -324,6 +341,7 @@ void bullet(float time) {
 						Level1[inviders].life = false;
 						RemoveLevel1(Level1, false);
 						Explosions.push_back({ BulletList[count].weaponPositionX,BulletList[count].weaponPositionY,false,0 });
+						score += 10;
 						first = true;
 						BulletList[count].bullet = false;
 						BulletList.clear();
@@ -427,38 +445,38 @@ void moveInviders(float time) {
 		invidersTimer += time;
 		for (int inviders = 0; inviders < Level1.size(); ++inviders) {
 			
-			
+			//соблюдение растояние между inviders
 			if((Level1[inviders].invaderPositionX+100 <= Level1[inviders+1].invaderPositionX && 
 				Level1[inviders].invaderPositionX + 105 >= Level1[inviders + 1].invaderPositionX && 
 				Level1[inviders].invaderPositionY == Level1[inviders + 1].invaderPositionY && (
 				Level1[inviders].column==1 || Level1[inviders].column == 3))) {
-				
+				//соблюдают в colum1 и column 3  
 				Level1[inviders].stop=true;
 			} else if ((Level1[inviders+1].invaderPositionX + 100 <= Level1[inviders].invaderPositionX &&
 				Level1[inviders+1].invaderPositionX + 105 >= Level1[inviders].invaderPositionX &&
 				Level1[inviders].invaderPositionY == Level1[inviders + 1].invaderPositionY &&
 				Level1[inviders].column == 2)) {
-				
+				//соблюдают в colum2
 				Level1[inviders].stop = true;
 
 			} else if ((Level1[inviders].invaderPositionY + 100 <= Level1[inviders + 1].invaderPositionY &&
 				Level1[inviders].invaderPositionY <= Level1[inviders + 1].invaderPositionY &&
 				Level1[inviders].invaderPositionY + 105 >= Level1[inviders + 1].invaderPositionY &&
 				Level1[inviders + 1].invaderPositionX <= 160 && inviders != 0)) {
+				//стоят на месте когда другие захватчики спускаются из column 1 в column 2 
 				Level1[inviders].stop = true;
+
 			} else if ((Level1[inviders].invaderPositionY + 100 <= Level1[inviders + 1].invaderPositionY &&
 				Level1[inviders].invaderPositionY <= Level1[inviders + 1].invaderPositionY &&
 				Level1[inviders].invaderPositionY + 105 >= Level1[inviders + 1].invaderPositionY &&
 				Level1[inviders + 1].invaderPositionX >= 740 && inviders != 0)) {
+				//стоят на месте когда другие захватчики спускаются из column 2 в column 3 
 				Level1[inviders].stop = true;
 			}
 			else {
+				//в остальном случае двигаются
 				Level1[inviders].stop = false;
 			}
-
-		    
-			
-			//изменит кардан даркор /\ захватчико бояд вакти наздик шуданба истан
 
 			if (Level1[inviders].invaderPositionY < float(20)) {
 				if (invidersTimer > 1) {
@@ -608,6 +626,8 @@ void protection() {
 int main()
 {
 	settingsImages();
+	fontsProsession();
+
 	
 	Clock clock; // создает переменную времени, т.о. привязка ко времени (а не загруженности мощьности процессора)
 
@@ -630,6 +650,7 @@ int main()
 
 		window.clear();//отчистить окно 
 		showBackground(time);
+		printingTextWithFont();
 		protection();
 		fireWhileShooting(); // 
 		fireFromWeapon();
