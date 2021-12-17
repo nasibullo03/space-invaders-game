@@ -12,14 +12,18 @@ using namespace std;
 
 bool fire = false, weaponFire = true, leftFireRotation = false,
 rightFireRotation = false, clickOnKeyboardUP = false,
-first = true, hitTheTarget = false, endOfProgram = false, shotOnProtection=false;
+first = true, hitTheTarget = false, endOfProgram = false, shotOnProtection = false,
+dropingBomb = true;
 int score = 0, life=3;
-int intweaponFire = 0, backgroundIndex=0;
-float weaponX, weaponY, bullEndPositionY, backgroundTimer, invidersTimer, invidersSpeed;
+int intweaponFire = 0, backgroundIndex=0, indexOfBomb;
+float weaponX, weaponY, bullEndPositionY, backgroundTimer, invidersTimer, invidersSpeed, bombTimer;
 
-Image bgImage, weaponImg, fireImg, bulletImg, invaders[9], explosionImg[50], background[25], protectionImg;
-Texture bgTexture, weaponTxre, fireTxre, bulletTxre,invidersTexture[9], explosionTexture[50], backgroundTexture[25], protectionTexture;
-Sprite bgSprite, weaponSprite, fireSprite, bulletSprite, invidersSprite[9],  explosionSprite[50], backgroundSprite[25], protectionSprite;
+Image bgImage, weaponImg, fireImg, bulletImg, invaders[9], explosionImg[50], 
+background[25], protectionImg, emptyFrame, bombImg;
+Texture bgTexture, weaponTxre, fireTxre, bulletTxre,invidersTexture[9], 
+explosionTexture[50], backgroundTexture[25], protectionTexture, emptyFrameTexture, bombTexture;
+Sprite bgSprite, weaponSprite, fireSprite, bulletSprite, invidersSprite[9],  
+explosionSprite[50], backgroundSprite[25], protectionSprite, emptyFrameSprite, bombSprite;
 Font font;
 Text scoreText("", font, 20), lifeText("", font, 20);
 
@@ -72,11 +76,19 @@ struct SProtection {
 
 vector <SProtection> Protection;
 
+struct SBomb {
+	float x;
+	float y;
+	bool exploded;
+	float speed;
+};
+
+vector <SBomb> Bomb;
 
 //удалить взрывающие захватчики из структа вектора 
 void RemoveLevel1(std::vector<Invaders> & Level1, bool life) {
 	Level1.erase(
-		std::remove_if(Level1.begin(), Level1.end(), [&](Invaders const & v) {
+		remove_if(Level1.begin(), Level1.end(), [&](Invaders const & v) {
 		return v.life == false;
 	}),
 		Level1.end());
@@ -85,30 +97,40 @@ void RemoveLevel1(std::vector<Invaders> & Level1, bool life) {
 //удалить взрывающие протекторы из структа вектора 
 void RemoveProtection(std::vector<SProtection> & Protection, bool visibility) {
 	Protection.erase(
-		std::remove_if(Protection.begin(), Protection.end(), [&](SProtection const & v) {
+		remove_if(Protection.begin(), Protection.end(), [&](SProtection const & v) {
 		return v.visibility == false;
 	}),
 		Protection.end());
 }
 
-//отчистит ветора после взрыва 
+//отчистит векора после взрыва invaiderи 
 void RemoveExplosion(std::vector<Explosion> & Explosions, bool endOfExplosion) {
 	Explosions.erase(
-		std::remove_if(Explosions.begin(), Explosions.end(), [&](Explosion const & v) {
+		remove_if(Explosions.begin(), Explosions.end(), [&](Explosion const & v) {
 		return v.endOfExplosion == true;
 	}),
 		Explosions.end());
+}
+
+//отчистит ветора после взрыва бомба
+void RemoveBomb(std::vector<SBomb> & Bomb, bool exploded) {
+	Bomb.erase(
+		remove_if(Bomb.begin(), Bomb.end(), [&](SBomb const & v) {
+		return v.exploded == true;
+	}),
+		Bomb.end());
 }
 
 //импортирование картинки и обработики картинки
 void settingsImages() {
 	
 	//добавл€ем картинки 
-	bgImage.loadFromFile("images/bg.png");//добавление background image 
 	weaponImg.loadFromFile("images/weapon.png");//добавление оруж€ 
 	fireImg.loadFromFile("images/fire.png");//добавление эффект огны
 	bulletImg.loadFromFile("images/bullet.png");//добавление пул€
-	protectionImg.loadFromFile("images/protection.png");
+	protectionImg.loadFromFile("images/protection.png");//добавление защитники 
+	emptyFrame.loadFromFile("images/empty_button.png"); 
+	bombImg.loadFromFile("images/bomb.png"); // добавление бомба 
 	//добавление захватчики 
 	for (int imgIndex = 0; imgIndex < 9; ++imgIndex) {
 		invaders[imgIndex].loadFromFile("images/inviders/100px/" + to_string(imgIndex) + ".png");
@@ -123,12 +145,13 @@ void settingsImages() {
 	}
 
 	//добавл€ем текстура в картинки 
-	
-	bgTexture.loadFromImage(bgImage);
 	weaponTxre.loadFromImage(weaponImg);
 	fireTxre.loadFromImage(fireImg);
 	bulletTxre.loadFromImage(bulletImg);
 	protectionTexture.loadFromImage(protectionImg);
+	emptyFrameTexture.loadFromImage(emptyFrame);
+	bombTexture.loadFromImage(bombImg);
+
 
 	//текстура дл€ захватчики 
 	for (int texture = 0; texture < 9; ++texture) {
@@ -144,9 +167,9 @@ void settingsImages() {
 	}
 
 	//добавл€ем спрайт дл€ текстуры
-	
-	bgSprite.setTexture(bgTexture);
-	bgSprite.setPosition(0, 0);
+	bombSprite.setTexture(bombTexture);
+	bombSprite.setTextureRect(IntRect(0, 22, 48, 48));
+	emptyFrameSprite.setTexture(emptyFrameTexture);
 	weaponSprite.setTexture(weaponTxre);
 	weaponSprite.setPosition(float(WSize[0].width / 2 - 75), float(WSize[0].height - 170));//задаем началные позиции оруж€ 
 	weaponSprite.setScale(
@@ -191,7 +214,6 @@ void settingsImages() {
 	}
 	//координации protection
 	for (int protectionIndex = 0; protectionIndex < 150; protectionIndex += 30) {
-
 		Protection.push_back({ float(50 + protectionIndex), float(WinSize.height - 220),true });
 		Protection.push_back({ float(50 + protectionIndex), float(WinSize.height - 250),true });
 		Protection.push_back({ float(425 + protectionIndex),float(WinSize.height - 220),true });
@@ -213,32 +235,27 @@ void fontsProsession() {
 }
 
 void printingTextWithFont() {
-	
+	//frame но пока не надо , елси будеть нужны поставлю
+	/*emptyFrameSprite.setPosition(WinSize.width - 235, 4);
+	emptyFrameSprite.setScale(
+		100.0f / emptyFrameSprite.getLocalBounds().width,
+		35.0f / emptyFrameSprite.getLocalBounds().height
+	);*/
 	lifeText.setString("Life: " + to_string(life));
-	lifeText.setPosition(WinSize.width - 320, 4);
+	lifeText.setPosition(float(WinSize.width - 320), float(8));
 
 	scoreText.setString("Score: " + to_string(score));
-	scoreText.setPosition(WinSize.width - 220, 4);
+	scoreText.setPosition(float(WinSize.width - 220), float(8));
 	
 	window.draw(lifeText);
 	window.draw(scoreText);
 
 }
 
-//первоначальные захватчики и их свойств
-void makeInvides() {
-	
-	//структура Level 1
-	
-
-}
-
 //доступ на клавиатуру
 void keyboard(float time) {
 	
-	if (Keyboard::isKeyPressed(Keyboard::Escape)|| 
-	   (Keyboard::isKeyPressed(Keyboard::LAlt)||
-		(Keyboard::isKeyPressed(Keyboard::RAlt)) && Keyboard::isKeyPressed(Keyboard::F4))) {
+	if (Keyboard::isKeyPressed(Keyboard::Escape)){
 		window.close();
 	}
 	if (Keyboard::isKeyPressed(Keyboard::Left) ||
@@ -624,10 +641,52 @@ void showBackground(float time) {
 void protection() {
 	
 	for (int protectionIndex = 0; protectionIndex < Protection.size(); ++protectionIndex) {
-		protectionSprite.setPosition(Protection[protectionIndex].x, Protection[protectionIndex].y);
+		protectionSprite.setPosition(Protection[protectionIndex].x+26, Protection[protectionIndex].y+100);
 		window.draw(protectionSprite);
 	}
 		
+}
+
+void bomb(float time) {
+	bombTimer += time;
+	if (bombTimer > 15000) {
+		indexOfBomb = Level1.size() - rand() % Level1.size();
+		Bomb.push_back({Level1[indexOfBomb].invaderPositionX,Level1[indexOfBomb].invaderPositionY, false});
+		dropingBomb = false;
+		bombTimer = 0;
+	}
+	
+	if (Bomb.size() > 0) {
+		for (int bombIndex = 0; bombIndex < Bomb.size(); ++bombIndex) {
+			
+			//if (!Bomb[bombIndex].exploded) {
+				if (Bomb[bombIndex].y < 600 && Bomb[bombIndex].x > 50) {
+					Bomb[bombIndex].speed += time;
+					bombSprite.setPosition(Bomb[bombIndex].x, Bomb[bombIndex].y);
+					if (Bomb[bombIndex].speed > 5) {
+						Bomb[bombIndex].y += 1.0f;
+						Bomb[bombIndex].speed = 0;
+						
+					}
+					
+				}
+				else if (Bomb[bombIndex].y >= 600) {
+					Bomb[bombIndex].exploded = true; 
+					RemoveBomb(Bomb, true);
+				}
+				
+				
+				window.draw(bombSprite);
+			//}
+
+		}
+		
+	}
+	
+	
+	
+	cout << Bomb.size() << endl; 
+	
 }
 
 int main()
@@ -657,6 +716,7 @@ int main()
 
 		window.clear();//отчистить окно 
 		showBackground(time);
+		//window.draw(emptyFrameSprite); frame пока не надо 
 		printingTextWithFont();
 		protection();
 		fireWhileShooting(); // 
@@ -664,6 +724,7 @@ int main()
 		bullet(time);
 		addInviders();
 		moveInviders(time);
+		bomb(time);
 		explosions(time);
 		window.draw(weaponSprite);
 		window.display();
