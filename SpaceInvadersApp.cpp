@@ -13,10 +13,10 @@ using namespace std;
 bool fire = false, weaponFire = true, leftFireRotation = false,
 rightFireRotation = false, clickOnKeyboardUP = false,
 first = true, hitTheTarget = false, shotOnProtection = false,
-dropingBomb = true, gameOver = false;
-int score = 0, life=3;
+dropingBomb = true, gameOver = true;
+int score = 0, life=3, colorR=0, colorG = 0, colorB = 0;
 int intweaponFire = 0, backgroundIndex=0, indexOfBomb;
-float weaponX, weaponY, bullEndPositionY, backgroundTimer, invidersTimer, invidersSpeed, bombTimer;
+float weaponX, weaponY, bullEndPositionY, backgroundTimer, invidersTimer, invidersSpeed, bombTimer, changeColorTimer;
 
 Image bgImage, weaponImg, fireImg, bulletImg, invaders[9], explosionImg[50], 
 background[25], protectionImg, emptyFrame, bombImg;
@@ -25,7 +25,8 @@ explosionTexture[50], backgroundTexture[25], protectionTexture, emptyFrameTextur
 Sprite bgSprite, weaponSprite, fireSprite, bulletSprite, invidersSprite[9],  
 explosionSprite[50], backgroundSprite[25], protectionSprite, emptyFrameSprite, bombSprite;
 Font font;
-Text scoreText("", font, 20), lifeText("", font, 20), gameOverText("", font, 36), scoreTextOnTheEnd("", font, 26);
+Text scoreText("", font, 20), lifeText("", font, 20), gameOverText("", font, 36), scoreTextOnTheEnd("", font, 26), 
+pressKeybordText("", font, 16);
 
 
 struct WindowSize{
@@ -707,9 +708,23 @@ void bomb(float time) {
 	
 }
 
-void GameOver() {
-	RectangleShape rectangle(Vector2f(400.f, 200.f));
-	rectangle.move(300, 150);
+void GameOver(float time) {
+	
+	changeColorTimer += time;
+	RectangleShape rectangleBack(Vector2f(420.f, 310.f));
+	rectangleBack.move(295, 135);
+	rectangleBack.setFillColor(Color(100-colorR, 100-colorG, 100-colorB));
+	window.draw(rectangleBack);
+	if (changeColorTimer > 500) {
+		colorR = 2* rand() % 50;
+		colorG = 2 * rand() % 50;
+		colorB = 2 * rand() % 50;
+		changeColorTimer = 0;
+	}
+	
+	
+	RectangleShape rectangle(Vector2f(410.f, 300.f));
+	rectangle.move(300, 140);
 	rectangle.setFillColor(Color(29, 7, 68));
 	window.draw(rectangle);
 
@@ -735,10 +750,24 @@ void GameOver() {
 
 	scoreTextOnTheEnd.setPosition(492 - goBackCoordination, 260);
 	window.draw(scoreTextOnTheEnd);
+
 	goBackCoordination = 0;
+
 	scoreTextOnTheEnd.setString(" score!!");
 	scoreTextOnTheEnd.setPosition(450, 300);
 	window.draw(scoreTextOnTheEnd);
+
+	pressKeybordText.setString("Press Enter to start a new game");
+	pressKeybordText.setPosition(340, 350);
+	window.draw(pressKeybordText);
+
+	pressKeybordText.setString("or");
+	pressKeybordText.setPosition(490, 370);
+	window.draw(pressKeybordText);
+
+	pressKeybordText.setString("press Escape to exit the game.");
+	pressKeybordText.setPosition(350, 390);
+	window.draw(pressKeybordText);
 
 	if (Keyboard::isKeyPressed(Keyboard::Enter)) {
 		gameOver = false;
@@ -751,6 +780,9 @@ void GameOver() {
 		life = 3;
 		score = 0;
 
+	}
+	if (Keyboard::isKeyPressed(Keyboard::Escape)) {
+		window.close();
 	}
 }
 
@@ -785,7 +817,7 @@ int main()
 
 		
 		if (gameOver) {
-			GameOver();
+			GameOver(time);
 		}
 
 		if (!gameOver) {
