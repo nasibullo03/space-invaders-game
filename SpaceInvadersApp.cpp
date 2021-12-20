@@ -16,7 +16,8 @@ first = true, hitTheTarget = false, shotOnProtection = false,
 dropingBomb = true, newGame = true, gameOver = true, goingUpLetter=true;
 int score = 0, life=3, colorR=0, colorG = 0, colorB = 0;
 int intweaponFire = 0, backgroundIndex=0, indexOfBomb, indexOfLetterForAnimating=0;
-float weaponX, weaponY, bullEndPositionY, backgroundTimer, invidersTimer, invidersSpeed, bombTimer, changeColorTimer, animatingLettersTimer;
+float weaponX, weaponY, bullEndPositionY, backgroundTimer, invidersTimer, invidersSpeed, bombTimer, 
+changeColorTimer, animatingLettersTimer,bombDropingOutTime=15000;
 
 Image bgImage, weaponImg, fireImg, bulletImg, invaders[9], explosionImg[50], 
 background[25], protectionImg, emptyFrame, bombImg;
@@ -410,12 +411,12 @@ void bullet(float time) {
 
 				}
 
-				for (int indexx = 0; indexx < Protection.size(); ++indexx) {
-					if (((Protection[indexx].x  <= BulletList[count].weaponPositionX) &&
-						(Protection[indexx].x + 30 >= BulletList[count].weaponPositionX-15)) &&
-						(Protection[indexx].y >= BulletList[count].weaponPositionY - 30)) {
+				for (int protectionIndex = 0; protectionIndex < Protection.size(); ++protectionIndex) {
+					if (((Protection[protectionIndex].x  <= BulletList[count].weaponPositionX) &&
+						(Protection[protectionIndex].x + 30 >= BulletList[count].weaponPositionX-15)) &&
+						(Protection[protectionIndex].y >= BulletList[count].weaponPositionY - 30)) {
 						bullEndPositionY = BulletList[count].weaponPositionY;;
-						Protection[indexx].visibility = false;
+						Protection[protectionIndex].visibility = false;
 						RemoveProtection(Protection, false);
 						Explosions.push_back({ BulletList[count].weaponPositionX,BulletList[count].weaponPositionY,false,0 });
 						first = true;
@@ -684,12 +685,23 @@ void protection() {
 //неправильно работает надо как то изменить чтобы праильно появилась бомба на координате оружя 
 void bomb(float time) {
 	bombTimer += time;
-	if (bombTimer > 15000) {
+	if (score > 0 && score % 500 == 0) {
+		if (bombDropingOutTime > 5000) {
+			bombDropingOutTime -= 1000;
+		}
+	}
+	if (bombTimer > bombDropingOutTime) {
 		for (int inviders = 0; inviders < Level1.size(); ++inviders) {
 			if (Level1[inviders].invaderPositionX >= weaponSprite.getPosition().x &&
 				Level1[inviders].invaderPositionX +150>= weaponSprite.getPosition().x) {
 				Bomb.push_back({ Level1[inviders].invaderPositionX,Level1[inviders].invaderPositionY, false });
 				dropingBomb = false;
+				bombTimer = 0;
+				break;
+			}
+			if (Level1[inviders].column == 3) {
+				dropingBomb = false;
+				Bomb.push_back({ Level1[inviders].invaderPositionX,Level1[inviders].invaderPositionY, false });
 				bombTimer = 0;
 				break;
 			}
@@ -724,13 +736,26 @@ void bomb(float time) {
 					Bomb[bombIndex].exploded = true;
 					RemoveBomb(Bomb, true);
 					--life;
-					if (life == 0) {
-						gameOver = true;
-					}
+					
 				}
+
+				/*for (int protectionIndex = 0; protectionIndex < Protection.size(); ++protectionIndex) {
+					if (((Protection[protectionIndex].x <= Bomb[bombIndex].x) &&
+						(Protection[protectionIndex].x + 30 >= Bomb[bombIndex].x - 48)) &&
+						(Protection[protectionIndex].y >= Bomb[bombIndex].y - 30)) {
+						
+						Protection[protectionIndex].visibility = false;
+						RemoveProtection(Protection, false);
+						Bomb[bombIndex].exploded = true;
+						RemoveBomb(Bomb, true);
+						Explosions.push_back({ Bomb[bombIndex].x,Bomb[bombIndex].y,false,0 });
 				
+					}
+				}**/
 				
-				
+				if (life == 0) {
+					gameOver = true;
+				}
 				
 				window.draw(bombSprite);
 			}
@@ -812,16 +837,17 @@ void GameOver(float time) {
 		Explosions.clear();
 		BulletList.clear();
 		Protection.clear();
+		bombDropingOutTime = 15000;
 		life = 3;
 		score = 0;
 		for (int protectionIndex = 0; protectionIndex < 150; protectionIndex += 30) {
-			Protection.push_back({ float(100 + protectionIndex), float(WinSize.height - 320),true });
-			Protection.push_back({ float(100 + protectionIndex), float(WinSize.height - 350),true });
-			Protection.push_back({ float(400 + protectionIndex),float(WinSize.height - 320),true });
-			Protection.push_back({ float(400 + protectionIndex), float(WinSize.height - 350),true });
-			Protection.push_back({ float(700 + protectionIndex), float(WinSize.height - 320),true });
-			Protection.push_back({ float(700 + protectionIndex), float(WinSize.height - 350),true });
-		}
+		Protection.push_back({ float(100 + protectionIndex), float(WinSize.height - 320),true });
+		Protection.push_back({ float(100 + protectionIndex), float(WinSize.height - 350),true });
+		Protection.push_back({ float(400 + protectionIndex),float(WinSize.height - 320),true });
+		Protection.push_back({ float(400 + protectionIndex), float(WinSize.height - 350),true });
+		Protection.push_back({ float(700 + protectionIndex), float(WinSize.height - 320),true });
+		Protection.push_back({ float(700 + protectionIndex), float(WinSize.height - 350),true });
+	}
 
 	}
 	if (Keyboard::isKeyPressed(Keyboard::Escape)) {
