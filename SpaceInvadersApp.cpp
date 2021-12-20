@@ -12,8 +12,8 @@ using namespace std;
 
 bool fire = false, weaponFire = true, leftFireRotation = false,
 rightFireRotation = false, clickOnKeyboardUP = false,
-first = true, hitTheTarget = false, endOfProgram = false, shotOnProtection = false,
-dropingBomb = true;
+first = true, hitTheTarget = false, shotOnProtection = false,
+dropingBomb = true, gameOver = false;
 int score = 0, life=3;
 int intweaponFire = 0, backgroundIndex=0, indexOfBomb;
 float weaponX, weaponY, bullEndPositionY, backgroundTimer, invidersTimer, invidersSpeed, bombTimer;
@@ -25,7 +25,8 @@ explosionTexture[50], backgroundTexture[25], protectionTexture, emptyFrameTextur
 Sprite bgSprite, weaponSprite, fireSprite, bulletSprite, invidersSprite[9],  
 explosionSprite[50], backgroundSprite[25], protectionSprite, emptyFrameSprite, bombSprite;
 Font font;
-Text scoreText("", font, 20), lifeText("", font, 20);
+Text scoreText("", font, 20), lifeText("", font, 20), gameOverText("", font, 36), scoreTextOnTheEnd("", font, 26);
+
 
 struct WindowSize{
 	int width;
@@ -35,7 +36,7 @@ struct WindowSize{
 WindowSize WinSize = {1000,600};
 vector <WindowSize> WSize = { WinSize };
 
-RenderWindow window(sf::VideoMode(WSize[0].width, WSize[0].height), "SFML Application", Style::Close);
+RenderWindow window(sf::VideoMode(WSize[0].width, WSize[0].height), "SPACE INVADERS");
 
 struct Bullet {
 	float weaponPositionX;
@@ -214,21 +215,17 @@ void settingsImages() {
 	}
 	//координации protection
 	for (int protectionIndex = 0; protectionIndex < 150; protectionIndex += 30) {
-		Protection.push_back({ float(50 + protectionIndex), float(WinSize.height - 220),true });
-		Protection.push_back({ float(50 + protectionIndex), float(WinSize.height - 250),true });
-		Protection.push_back({ float(425 + protectionIndex),float(WinSize.height - 220),true });
-		Protection.push_back({ float(425 + protectionIndex), float(WinSize.height - 250),true });
-		Protection.push_back({ float(800 + protectionIndex), float(WinSize.height - 220),true });
-		Protection.push_back({ float(800 + protectionIndex), float(WinSize.height - 250),true });
+		Protection.push_back({ float(100 + protectionIndex), float(WinSize.height - 320),true });
+		Protection.push_back({ float(100 + protectionIndex), float(WinSize.height - 350),true });
+		Protection.push_back({ float(400 + protectionIndex),float(WinSize.height - 320),true });
+		Protection.push_back({ float(400 + protectionIndex), float(WinSize.height - 350),true });
+		Protection.push_back({ float(700 + protectionIndex), float(WinSize.height - 320),true });
+		Protection.push_back({ float(700 + protectionIndex), float(WinSize.height - 350),true });
 	}
-
-
-
 }
 
 void fontsProsession() {
 	font.loadFromFile("fonts/ChargeVector.ttf");
-	//scoreText.setColor(Color::Red);
 	scoreText.setStyle(Text::Bold);
 	lifeText.setStyle(Text::Bold);
 
@@ -246,6 +243,8 @@ void printingTextWithFont() {
 
 	scoreText.setString("Score: " + to_string(score));
 	scoreText.setPosition(float(WinSize.width - 220), float(8));
+
+	
 	
 	window.draw(lifeText);
 	window.draw(scoreText);
@@ -293,6 +292,7 @@ void keyboard(float time) {
 	else {
 		rightFireRotation = false;
 	}
+	
 	if (Keyboard::isKeyPressed(Keyboard::Up) ||
 		Keyboard::isKeyPressed(Keyboard::W) ||
 		Keyboard::isKeyPressed(Keyboard::Num8) ||
@@ -308,7 +308,6 @@ void keyboard(float time) {
 			first = false;
 
 		}
-
 		else if (BulletList[BulletList.size() - 1].bullet == false) {
 			weaponX = weaponSprite.getPosition().x + 67;
 			weaponY = weaponSprite.getPosition().y + 50;
@@ -376,8 +375,8 @@ void bullet(float time) {
 				}
 
 				for (int indexx = 0; indexx < Protection.size(); ++indexx) {
-					if (((Protection[indexx].x-15  <= BulletList[count].weaponPositionX) &&
-						(Protection[indexx].x + 30 >= BulletList[count].weaponPositionX)) &&
+					if (((Protection[indexx].x  <= BulletList[count].weaponPositionX) &&
+						(Protection[indexx].x + 30 >= BulletList[count].weaponPositionX-15)) &&
 						(Protection[indexx].y >= BulletList[count].weaponPositionY - 30)) {
 						bullEndPositionY = BulletList[count].weaponPositionY;;
 						Protection[indexx].visibility = false;
@@ -646,20 +645,26 @@ void protection() {
 	}
 		
 }
-
+//неправильно работает надо как то изменить чтобы праильно по€вилась бомба на координате оруж€ 
 void bomb(float time) {
 	bombTimer += time;
 	if (bombTimer > 15000) {
-		indexOfBomb = Level1.size() - rand() % Level1.size();
-		Bomb.push_back({Level1[indexOfBomb].invaderPositionX,Level1[indexOfBomb].invaderPositionY, false});
-		dropingBomb = false;
-		bombTimer = 0;
+		for (int inviders = 0; inviders < Level1.size(); ++inviders) {
+			if (Level1[inviders].invaderPositionX >= weaponSprite.getPosition().x &&
+				Level1[inviders].invaderPositionX +150>= weaponSprite.getPosition().x) {
+				Bomb.push_back({ Level1[inviders].invaderPositionX,Level1[inviders].invaderPositionY, false });
+				dropingBomb = false;
+				bombTimer = 0;
+				break;
+			}
+		}
+		
 	}
 	
 	if (Bomb.size() > 0) {
 		for (int bombIndex = 0; bombIndex < Bomb.size(); ++bombIndex) {
 			
-			//if (!Bomb[bombIndex].exploded) {
+			if (!Bomb[bombIndex].exploded) {
 				if (Bomb[bombIndex].y < 600 && Bomb[bombIndex].x > 50) {
 					Bomb[bombIndex].speed += time;
 					bombSprite.setPosition(Bomb[bombIndex].x, Bomb[bombIndex].y);
@@ -670,23 +675,83 @@ void bomb(float time) {
 					}
 					
 				}
-				else if (Bomb[bombIndex].y >= 600) {
+				
+				if (Bomb[bombIndex].y >= 600) {
 					Bomb[bombIndex].exploded = true; 
 					RemoveBomb(Bomb, true);
 				}
 				
+				if (weaponSprite.getPosition().x <= Bomb[bombIndex].x &&
+					weaponSprite.getPosition().x+150>= Bomb[bombIndex].x &&
+					Bomb[bombIndex].y >= 480 ){
+					Explosions.push_back({ Bomb[bombIndex].x,Bomb[bombIndex].y,false,0 });
+					Bomb[bombIndex].exploded = true;
+					RemoveBomb(Bomb, true);
+					--life;
+					if (life == 0) {
+						gameOver = true;
+					}
+				}
+				
+				
+				
 				
 				window.draw(bombSprite);
-			//}
+			}
 
 		}
 		
 	}
-	
-	
-	
+
 	cout << Bomb.size() << endl; 
 	
+}
+
+void GameOver() {
+	RectangleShape rectangle(Vector2f(400.f, 200.f));
+	rectangle.move(300, 150);
+	rectangle.setFillColor(Color(29, 7, 68));
+	window.draw(rectangle);
+
+	gameOverText.setString("Game over!");
+	gameOverText.setPosition(390, 155);
+	gameOverText.setStyle(Text::Bold);
+	window.draw(gameOverText);
+
+	scoreTextOnTheEnd.setString("You have erned ");
+	scoreTextOnTheEnd.setPosition(390, 220);
+	scoreTextOnTheEnd.setStyle(Text::Bold);
+	window.draw(scoreTextOnTheEnd);
+
+	int lengthText = strlen(to_string(score).c_str());
+	scoreTextOnTheEnd.setString(to_string(score));
+	int goBackCoordination = 0;
+
+	if (lengthText > 1) {
+		for (int textLenght = 1; textLenght < lengthText; ++textLenght) {
+			goBackCoordination += 8;
+		}
+	}
+
+	scoreTextOnTheEnd.setPosition(492 - goBackCoordination, 260);
+	window.draw(scoreTextOnTheEnd);
+	goBackCoordination = 0;
+	scoreTextOnTheEnd.setString(" score!!");
+	scoreTextOnTheEnd.setPosition(450, 300);
+	window.draw(scoreTextOnTheEnd);
+
+	if (Keyboard::isKeyPressed(Keyboard::Enter)) {
+		gameOver = false;
+		settingsImages();
+		fontsProsession();
+		Level1.clear();
+		Explosions.clear();
+		BulletList.clear();
+		Protection.clear();
+		life = 3;
+		score = 0;
+
+	}
 }
 
 int main()
@@ -694,7 +759,6 @@ int main()
 	settingsImages();
 	fontsProsession();
 
-	
 	Clock clock; // создает переменную времени, т.о. прив€зка ко времени (а не загруженности мощьности процессора)
 
 	while (window.isOpen())
@@ -707,26 +771,35 @@ int main()
 		while (window.pollEvent(event))
 		{
 			if (event.type == Event::Closed) {
-				endOfProgram = true;
 				window.close();
 			}
 				
 		}
-		keyboard(time);//доступ на клавиатуру и вдигать объекты с помощью клавиатуру
 
 		window.clear();//отчистить окно 
+
 		showBackground(time);
-		//window.draw(emptyFrameSprite); frame пока не надо 
-		printingTextWithFont();
 		protection();
-		fireWhileShooting(); // 
 		fireFromWeapon();
-		bullet(time);
-		addInviders();
-		moveInviders(time);
-		bomb(time);
-		explosions(time);
 		window.draw(weaponSprite);
+
+		
+		if (gameOver) {
+			GameOver();
+		}
+
+		if (!gameOver) {
+			keyboard(time);//доступ на клавиатуру и вдигать объекты с помощью клавиатуру
+			printingTextWithFont();
+			fireWhileShooting(); // 
+			bullet(time);
+			addInviders();
+			moveInviders(time);
+			explosions(time);
+			bomb(time);
+			
+		}
+		
 		window.display();
 		
 	}
