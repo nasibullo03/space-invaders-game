@@ -13,10 +13,10 @@ using namespace std;
 bool fire = false, weaponFire = true, leftFireRotation = false,
 rightFireRotation = false, clickOnKeyboardUP = false,
 first = true, hitTheTarget = false, shotOnProtection = false,
-dropingBomb = true, gameOver = true;
+dropingBomb = true, newGame = true, gameOver = true, goingUpLetter=true;
 int score = 0, life=3, colorR=0, colorG = 0, colorB = 0;
-int intweaponFire = 0, backgroundIndex=0, indexOfBomb;
-float weaponX, weaponY, bullEndPositionY, backgroundTimer, invidersTimer, invidersSpeed, bombTimer, changeColorTimer;
+int intweaponFire = 0, backgroundIndex=0, indexOfBomb, indexOfLetterForAnimating=0;
+float weaponX, weaponY, bullEndPositionY, backgroundTimer, invidersTimer, invidersSpeed, bombTimer, changeColorTimer, animatingLettersTimer;
 
 Image bgImage, weaponImg, fireImg, bulletImg, invaders[9], explosionImg[50], 
 background[25], protectionImg, emptyFrame, bombImg;
@@ -24,9 +24,10 @@ Texture bgTexture, weaponTxre, fireTxre, bulletTxre,invidersTexture[9],
 explosionTexture[50], backgroundTexture[25], protectionTexture, emptyFrameTexture, bombTexture;
 Sprite bgSprite, weaponSprite, fireSprite, bulletSprite, invidersSprite[9],  
 explosionSprite[50], backgroundSprite[25], protectionSprite, emptyFrameSprite, bombSprite;
-Font font;
+Font font, newGameFont;
 Text scoreText("", font, 20), lifeText("", font, 20), gameOverText("", font, 36), scoreTextOnTheEnd("", font, 26), 
-pressKeybordText("", font, 16);
+pressKeybordText("", font, 16), newGameText[13];
+
 
 
 struct WindowSize{
@@ -227,8 +228,42 @@ void settingsImages() {
 
 void fontsProsession() {
 	font.loadFromFile("fonts/ChargeVector.ttf");
+	newGameFont.loadFromFile("fonts/CubicPixel.otf");
 	scoreText.setStyle(Text::Bold);
 	lifeText.setStyle(Text::Bold);
+	for (int i = 0; i < 13; ++i) {
+		newGameText[i].setFont(newGameFont);
+		newGameText[i].setCharacterSize(60);
+		newGameText[i].setStyle(Text::Bold);
+	}
+
+	newGameText[0].setString("S");
+	newGameText[1].setString("P");
+	newGameText[2].setString("A");
+	newGameText[3].setString("C"); 
+	newGameText[4].setString("E");
+	newGameText[5].setString("I");
+	newGameText[6].setString("N");
+	newGameText[7].setString("V");
+	newGameText[8].setString("A");
+	newGameText[9].setString("D");
+	newGameText[10].setString("E");
+	newGameText[11].setString("R");
+	newGameText[12].setString("S");
+	int startCoordinationX = 430, startCoordinationY = 175;
+	for (int i = 0; i < 5; ++i) {
+		newGameText[i].setPosition(startCoordinationX, startCoordinationY);
+		startCoordinationX += 32;
+	}
+	startCoordinationX = 390;
+	startCoordinationY = 250;
+	newGameText[5].setPosition(startCoordinationX, startCoordinationY);
+	startCoordinationX += 15;
+	for (int i = 6; i < 13; ++i) {
+		newGameText[i].setPosition(startCoordinationX, startCoordinationY);
+		startCoordinationX += 32;
+	}
+
 
 }
 
@@ -779,6 +814,96 @@ void GameOver(float time) {
 		Protection.clear();
 		life = 3;
 		score = 0;
+		for (int protectionIndex = 0; protectionIndex < 150; protectionIndex += 30) {
+			Protection.push_back({ float(100 + protectionIndex), float(WinSize.height - 320),true });
+			Protection.push_back({ float(100 + protectionIndex), float(WinSize.height - 350),true });
+			Protection.push_back({ float(400 + protectionIndex),float(WinSize.height - 320),true });
+			Protection.push_back({ float(400 + protectionIndex), float(WinSize.height - 350),true });
+			Protection.push_back({ float(700 + protectionIndex), float(WinSize.height - 320),true });
+			Protection.push_back({ float(700 + protectionIndex), float(WinSize.height - 350),true });
+		}
+
+	}
+	if (Keyboard::isKeyPressed(Keyboard::Escape)) {
+		window.close();
+	}
+}
+
+void startANewGame(float time) {
+	changeColorTimer += time;
+	animatingLettersTimer += time; 
+	RectangleShape rectangleBack(Vector2f(420.f, 310.f));
+	rectangleBack.move(295, 135);
+	rectangleBack.setFillColor(Color(100 - colorR, 100 - colorG, 100 - colorB));
+	window.draw(rectangleBack);
+	if (changeColorTimer > 500) {
+		colorR = 2 * rand() % 50;
+		colorG = 2 * rand() % 50;
+		colorB = 2 * rand() % 50;
+		changeColorTimer = 0;
+	}
+
+
+	RectangleShape rectangle(Vector2f(410.f, 300.f));
+	rectangle.move(300, 140);
+	rectangle.setFillColor(Color(29, 7, 68));
+	window.draw(rectangle);
+
+	for (int i = 0; i < 13; ++i) {
+		if (animatingLettersTimer > 10) {
+			if (goingUpLetter) {
+				float y = newGameText[indexOfLetterForAnimating].getPosition().y;
+				float x = newGameText[indexOfLetterForAnimating].getPosition().x;
+				y -= 0.5f;
+				newGameText[indexOfLetterForAnimating].setPosition(x, y);
+				if (y <= 165 && indexOfLetterForAnimating<5) {
+					goingUpLetter = false;
+				}
+				else if (y <= 230 && indexOfLetterForAnimating >= 5) {
+					goingUpLetter = false;
+				}
+			}
+			if (!goingUpLetter) {
+				float y = newGameText[indexOfLetterForAnimating].getPosition().y;
+				float x = newGameText[indexOfLetterForAnimating].getPosition().x;
+				y += 0.5f;
+				newGameText[indexOfLetterForAnimating].setPosition(x, y);
+				
+				if (y >= 175 && indexOfLetterForAnimating < 5) {
+					goingUpLetter = true;
+					++indexOfLetterForAnimating;
+					if (indexOfLetterForAnimating == 13) {
+						indexOfLetterForAnimating = 0;
+					}
+				}
+				else if (y >= 240 && indexOfLetterForAnimating >= 5) {
+					goingUpLetter = true;
+					++indexOfLetterForAnimating;
+					if (indexOfLetterForAnimating == 13) {
+						indexOfLetterForAnimating = 0;
+					}
+				}
+			}
+			
+			animatingLettersTimer = 0;
+		}
+		window.draw(newGameText[i]);
+	}
+		
+	pressKeybordText.setString("Press Enter to start a new game");
+	pressKeybordText.setPosition(350, 350);
+	window.draw(pressKeybordText);
+
+	pressKeybordText.setString("or");
+	pressKeybordText.setPosition(500, 370);
+	window.draw(pressKeybordText);
+
+	pressKeybordText.setString("press Escape to exit the game.");
+	pressKeybordText.setPosition(360, 390);
+	window.draw(pressKeybordText);
+
+	if (Keyboard::isKeyPressed(Keyboard::Enter)) {
+		newGame = false;
 
 	}
 	if (Keyboard::isKeyPressed(Keyboard::Escape)) {
@@ -815,22 +940,28 @@ int main()
 		fireFromWeapon();
 		window.draw(weaponSprite);
 
-		
-		if (gameOver) {
-			GameOver(time);
+		if (newGame) {
+			startANewGame(time);
 		}
 
-		if (!gameOver) {
-			keyboard(time);//доступ на клавиатуру и вдигать объекты с помощью клавиатуру
-			printingTextWithFont();
-			fireWhileShooting(); // 
-			bullet(time);
-			addInviders();
-			moveInviders(time);
-			explosions(time);
-			bomb(time);
-			
+		if (!newGame) {
+			if (gameOver) {
+				GameOver(time);
+			}
+
+			if (!gameOver) {
+				keyboard(time);//доступ на клавиатуру и вдигать объекты с помощью клавиатуру
+				printingTextWithFont();
+				fireWhileShooting(); // 
+				bullet(time);
+				addInviders();
+				moveInviders(time);
+				explosions(time);
+				bomb(time);
+
+			}
 		}
+		
 		
 		window.display();
 		
